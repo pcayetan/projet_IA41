@@ -1,5 +1,6 @@
 import osmnx as ox
-import dijkstra
+import algorithms.dijkstra as dijkstra
+import algorithms.ant_colony as ant_colony
 
 ox.settings.log_console=True
 ox.settings.use_cache=True
@@ -16,6 +17,7 @@ optimizer = 'time'        # 'length','time'
 # geocodable place(s)
 graph = ox.graph_from_place(place, simplify=True, network_type = mode)
 # find the nearest node to the start location
+print(graph.graph)
 origin = ox.nearest_nodes(graph, start_latlng[0], start_latlng[1])
 # find the nearest node to the end location
 destination = ox.nearest_nodes(graph, end_latlng[0], end_latlng[1])
