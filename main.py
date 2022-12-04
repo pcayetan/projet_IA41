@@ -16,6 +16,14 @@ optimizer = 'time'        # 'length','time'
 # create graph from OSM within the boundaries of some 
 # geocodable place(s)
 graph = ox.graph_from_place(place, simplify=True, network_type = mode)
+# impute speed on all edges missing data
+graph = ox.add_edge_speeds(graph)
+# calculate travel time (seconds) for all edges
+graph = ox.add_edge_travel_times(graph)
+# impute speed on all edges missing data
+graph = ox.add_edge_speeds(graph)
+# calculate travel time (seconds) for all edges
+graph = ox.add_edge_travel_times(graph)
 # find the nearest node to the start location
 print(graph.graph)
 origin = ox.nearest_nodes(graph, start_latlng[0], start_latlng[1])
@@ -23,7 +31,7 @@ origin = ox.nearest_nodes(graph, start_latlng[0], start_latlng[1])
 destination = ox.nearest_nodes(graph, end_latlng[0], end_latlng[1])
 
 # find the shortest path between origin and destination
-route = dijkstra.bidirectional_dijkstra(graph, origin, destination, weight=optimizer)
+route = dijkstra.dijkstra(graph, origin, destination)
 
 route_map = ox.plot_route_folium(graph, route, tiles='openstreetmap', route_color = 'red', route_width = 6)
 
