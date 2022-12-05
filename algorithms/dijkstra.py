@@ -27,6 +27,8 @@ def dijkstra(Graph, source, target):
     push = heappush
     pop = heappop
 
+    neighbor_list=[Graph._succ,Graph._pred]
+
     #We are using the two way Dijkstra algorithm, so we need to keep track of the distances from both the source and the target
     out = [{}, {}] #List of dictionaries, each dictionary contains the distance from the source/target to each node
     path = [{},{}]  # dictionary of paths
@@ -56,12 +58,12 @@ def dijkstra(Graph, source, target):
         out[direction][v] = dist
 
         #Check if the node has been visited by the other search
-        if v in seen[1-direction]:
+        if v in out[1-direction]:
             #If it has, we have found a shortest path
-            return (out[0][v] + out[1][v], path[0][v] + path[1][v].reverse())
+            return (out[0][v] + out[1][v], path[0][v] + list(reversed(path[1][v]))[1:])
         
-        for neighbor in Graph._succ[v].items():
-            if neighbor[0] not in out[direction]:
+        for neighbor in neighbor_list[direction][v]:
+            if neighbor not in out[direction]:
                 weight = weight_node(v, neighbor, out[direction], Graph, direction)
                 #If the neighbor has not been visited, add it to the heap
                 if neighbor not in seen[direction]:

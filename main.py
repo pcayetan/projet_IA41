@@ -31,11 +31,12 @@ origin = ox.nearest_nodes(graph, start_latlng[0], start_latlng[1])
 destination = ox.nearest_nodes(graph, end_latlng[0], end_latlng[1])
 
 # find the shortest path between origin and destination
-route = dijkstra.dijkstra(graph, origin, destination)
+distance, route = dijkstra.dijkstra(graph, origin, destination)
 
 route_map = ox.plot_route_folium(graph, route, tiles='openstreetmap', route_color = 'red', route_width = 6)
 
 # save the map as an html file
 route_map.save('route.html')
+print(distance)
 
 
