@@ -7,19 +7,6 @@ import osmnx as ox
 import algorithms.dijkstra as dijkstra
 import algorithms.ant_colony as ant_colony
 
-class MainClass:
-    # Define class attributes
-    global_var = "Hello, World!"
-    
-    def __init__(self):
-        # Set configuration settings for osmnx
-        ox.settings.log_console = True
-        ox.settings.use_cache = True
-        # location where you want to find your route
-        self.place = 'San Francisco, California, United States'
-        # find shortest route based on the mode of travel
-        self.mode = 'drive'        # 'drive', 'bike', 'walk'
-        # find shortest path based on distance or time
 
 class MainClass:
     # Define class attributes
@@ -108,13 +95,16 @@ class Form(QWidget):
         
         # Plot the route on a map and save it as an HTML file
         route_map = ox.plot_route_folium(graph, route, tiles='openstreetmap', route_color='red', route_width=6)
-        route_map.save('route.html')
+        #route_map.save('route.html')
         
-        # Convert the Map object to an HTML string
-        route_html = route_map.render()
+        # Save the HTML file
+        route_map.save('route.html')
 
-        # Load the HTML string in the preview widget
-        self.preview.setHtml(route_html)
+        dirname = os.path.dirname(__file__)
+        filename = os.path.join(dirname, 'route.html')
+        url = QUrl.fromLocalFile(filename)
+        print(os.path.exists(filename))
+        self.preview.load(url)
 
 
 if __name__ == '__main__':
