@@ -48,8 +48,8 @@ def main():
     print("Distance:", distance, "meters")
 
     # Create a graph from the OpenStreetMap data
-    graph = ox.graph_from_point(midpoint, dist=distance*1.1, network_type='drive')
-
+    graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive')
+    #graph = ox.graph_from_place('San Francisco, California, United States', simplify=True, network_type='drive')
     # impute speed on all edges missing data
     graph = ox.add_edge_speeds(graph)
     # calculate travel time (seconds) for all edges
