@@ -1,7 +1,6 @@
 osmnx == 1.2.2
 scikit-learn
 folium
-heapq
 pyqt5
 pyqt5-tools
 geopy
