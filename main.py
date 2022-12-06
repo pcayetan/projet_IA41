@@ -6,6 +6,7 @@ from PyQt5.QtCore import QUrl
 import osmnx as ox
 import algorithms.dijkstra as dijkstra
 import algorithms.ant_colony as ant_colony
+import math
 
 
 class MainClass:
@@ -27,6 +28,8 @@ class MainClass:
         # Create the graph from OSM within the boundaries of some
         # geocodable place(s)
         graph = ox.graph_from_place(self.place, simplify=True, network_type=self.mode)
+
+
         # impute speed on all edges missing data
         graph = ox.add_edge_speeds(graph)
         # calculate travel time (seconds) for all edges
@@ -85,7 +88,7 @@ class Form(QWidget):
         
         # Convert the input to float values
         start_latlng = (float(input1[1]), float(input1[0]))
-        end_latlng = (float(input2[1]), float(input2[0]))
+        end_latlng = (float(input2[1]), float(input2[0]))    
         
         # Create an instance of the MainClass
         main_class = MainClass()

@@ -4,3 +4,4 @@ folium
 heapq
 pyqt5
 pyqt5-tools
+geopy
