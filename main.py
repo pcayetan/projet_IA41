@@ -8,6 +8,7 @@ import algorithms.dijkstra as dijkstra
 import algorithms.ant_colony as ant_colony
 import math
 from folium import Marker, Icon
+import matplotlib.pyplot as plt
 
 class MainClass:
     # Define class attributes
@@ -23,11 +24,55 @@ class MainClass:
         self.mode = 'drive'        # 'drive', 'bike', 'walk'
         # find shortest path based on distance or time
         self.optimizer = 'time'        # 'length', 'time'
+        
+    def get_midpoint(lat1, lon1, lat2, lon2):
+        """Return the midpoint between two lat/long coordinates.
+        """
+        lat1_radians = math.radians(lat1)
+        lon1_radians = math.radians(lon1)
+        lat2_radians = math.radians(lat2)
+        lon2_radians = math.radians(lon2)
+
+        bx = math.cos(lat2_radians) * math.cos(lon2_radians - lon1_radians)
+        by = math.cos(lat2_radians) * math.sin(lon2_radians - lon1_radians)
+        lat_midpoint = math.atan2(math.sin(lat1_radians) + math.sin(lat2_radians), math.sqrt((math.cos(lat1_radians) + bx) ** 2 + by ** 2))
+        lon_midpoint = lon1_radians + math.atan2(by, math.cos(lat1_radians) + bx)
+
+        return math.degrees(lat_midpoint), math.degrees(lon_midpoint)
+
+    def get_distance(lat1, lon1, lat2, lon2):
+        """Return the distance between two lat/long coordinates.
+        """
+        lat1_radians = math.radians(lat1)
+        lon1_radians = math.radians(lon1)
+        lat2_radians = math.radians(lat2)
+        lon2_radians = math.radians(lon2)
+
+        dlon = lon2_radians - lon1_radians
+        dlat = lat2_radians - lat1_radians
+        a = (math.sin(dlat / 2) ** 2) + math.cos(lat1_radians) * math.cos(lat2_radians) * (math.sin(dlon / 2) ** 2)
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        distance = 6371000 * c
+
+        return distance
 
     def findShortestRoute(self, start_latlng, end_latlng):
         # Create the graph from OSM within the boundaries of some
         # geocodable place(s)
-        graph = ox.graph_from_place(self.place, simplify=True, network_type=self.mode)
+        lat1 = start_latlng[1]
+        lon1 = start_latlng[0]
+        lat2 = end_latlng[1]
+        lon2 = end_latlng[0]
+
+        midpoint = MainClass.get_midpoint(lat1, lon1, lat2, lon2)
+        distance = MainClass.get_distance(lat1, lon1, lat2, lon2)
+
+        print("Midpoint:", midpoint)
+        print("Distance:", distance, "meters")
+
+        # Create a graph from the OpenStreetMap data
+        graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive')
+        #graph = ox.graph_from_place(self.place, simplify=True, network_type=self.mode)
 
 
         # impute speed on all edges missing data
@@ -83,8 +128,11 @@ class Form(QWidget):
         input1 = self.input1.text()
         input2 = self.input2.text()
 
-        input1 = ox.geocode(input1)
-        input2 = ox.geocode(input2)
+        if input1 == "" or input2 == "":
+            QMessageBox.about(self, 'Error', 'Please enter a valid location')
+        else:
+            input1 = ox.geocode(input1)
+            input2 = ox.geocode(input2)
         
         # Convert the input to float values
         start_latlng = (float(input1[1]), float(input1[0]))
@@ -94,12 +142,10 @@ class Form(QWidget):
         main_class = MainClass()
         
         # Call the findShortestRoute() method, passing the start and end locations as arguments
-        graph, distance, route = main_class.findShortestRoute(start_latlng, end_latlng)
-
-        #fig = ox.plot_graph_route(graph, route, node_size=0)
-
-        #fig.show()
-    
+        try:
+            graph, distance, route = main_class.findShortestRoute(start_latlng, end_latlng)
+        except:
+            return "No route found between the given locations. Please select two different locations"
         # Plot the route on a map and save it as an HTML file
         route_map = ox.plot_route_folium(graph, route, tiles='openstreetmap', route_color="red" , route_width=10)
         #route_map.save('route.html')
@@ -111,6 +157,7 @@ class Form(QWidget):
         # Add the start and end markers to the route_map
         start_marker.add_to(route_map)
         end_marker.add_to(route_map)
+
 
         # Save the HTML file
         route_map.save('route.html')
