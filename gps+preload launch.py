@@ -5,6 +5,10 @@ import osmnx as ox
 import geoip2.database
 import requests
 import folium
+import time
+
+# Start the timer
+start_time = time.time()
 
 ox.settings.log_console = True
 ox.settings.use_cache = True
@@ -33,11 +37,19 @@ G = ox.add_edge_speeds(G)
 # calculate travel time (seconds) for all edges
 G = ox.add_edge_travel_times(G)
 
-fig = ox.plot_graph(G, node_size=0.5)
+fig = ox.plot_graph(G, node_size=0.5, show=False)
+
+end_time = time.time()
+
+#show the plot
 
 # Use folium to plot the map
-m = folium.Map(location=[latitude, longitude], zoom_start=15)
+#m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
 # Add the map to the web page
-m.save('route.html')
+#m.save('route.html')
 
+# Calculate the elapsed time
+elapsed_time = end_time - start_time
+# Print the elapsed time
+print(f'Elapsed time: {elapsed_time:.2f} seconds')
