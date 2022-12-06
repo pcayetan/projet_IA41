@@ -26,7 +26,8 @@ def astar(Graph, source, target):
     def heuristic(u, v):
         pos_u = Graph.nodes[u]["pos"]
         pos_v = Graph.nodes[v]["pos"]
-        return ((pos_u[0] - pos_v[0])**2 + (pos_u[1] - pos_v[1])**2)**0.5
+        #to change heuristics to convert location into meters
+        return (((pos_u[0] - pos_v[0])**2 + (pos_u[1] - pos_v[1])**2)**0.5) * 13.88 #50 km/h
     
     push = heappush
     pop = heappop
@@ -54,7 +55,7 @@ def astar(Graph, source, target):
         direction = 1 - direction #Switch direction
 
         #Pop the smallest distance node from the heap
-        (dist, heuristic_estimate, v) = pop(to_explore[direction])
+        ( _ , dist, v) = pop(to_explore[direction])
 
         if v in out[direction]:
             continue
@@ -72,12 +73,12 @@ def astar(Graph, source, target):
                 #If the neighbor has not been visited, add it to the heap
                 if neighbor not in seen[direction]:
                     seen[direction][neighbor] = weight
-                    push(to_explore[direction], (weight, heuristic(neighbor, target), neighbor))
+                    push(to_explore[direction], (weight + heuristic(neighbor, target), weight, neighbor))
                     path[direction][neighbor] = path[direction][v] + [neighbor]
                 #If the neighbor has been visited, but the new path is shorter, update the heap
                 elif weight < seen[direction][neighbor]:
                     seen[direction][neighbor] = weight
-                    push(to_explore[direction], (weight, heuristic(neighbor, target), neighbor))
+                    push(to_explore[direction],  (weight + heuristic(neighbor, target), weight, neighbor))
                     path[direction][neighbor] = path[direction][v] + [neighbor]
             
     return (float('inf'), [])
