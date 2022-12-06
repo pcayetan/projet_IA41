@@ -7,7 +7,7 @@ import osmnx as ox
 import algorithms.dijkstra as dijkstra
 import algorithms.ant_colony as ant_colony
 import math
-
+from folium import Marker, Icon
 
 class MainClass:
     # Define class attributes
@@ -95,11 +95,23 @@ class Form(QWidget):
         
         # Call the findShortestRoute() method, passing the start and end locations as arguments
         graph, distance, route = main_class.findShortestRoute(start_latlng, end_latlng)
-        
+
+        #fig = ox.plot_graph_route(graph, route, node_size=0)
+
+        #fig.show()
+    
         # Plot the route on a map and save it as an HTML file
-        route_map = ox.plot_route_folium(graph, route, tiles='openstreetmap', route_color='red', route_width=6)
+        route_map = ox.plot_route_folium(graph, route, tiles='openstreetmap', route_color="red" , route_width=10)
         #route_map.save('route.html')
-        
+        start_marker = Marker(location=start_latlng[::-1], popup='Start Location', icon=Icon(icon='glyphicon-flag', color='green'))
+
+        # Create a folium.Marker instance for the end location, using the end_latlng coordinates
+        end_marker = Marker(location=end_latlng[::-1], popup='End Location', icon=Icon(icon='glyphicon-flag', color='red'))
+
+        # Add the start and end markers to the route_map
+        start_marker.add_to(route_map)
+        end_marker.add_to(route_map)
+
         # Save the HTML file
         route_map.save('route.html')
 

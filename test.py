@@ -1,6 +1,9 @@
 import math
 import osmnx as ox
 
+ox.settings.log_console = True
+ox.settings.use_cache = True
+
 def get_midpoint(lat1, lon1, lat2, lon2):
     """Return the midpoint between two lat/long coordinates.
     """
@@ -45,7 +48,7 @@ def main():
     print("Distance:", distance, "meters")
 
     # Create a graph from the OpenStreetMap data
-    graph = ox.graph_from_point(midpoint, dist=distance, network_type='drive')
+    graph = ox.graph_from_point(midpoint, dist=distance*1.1, network_type='drive')
 
     # impute speed on all edges missing data
     graph = ox.add_edge_speeds(graph)
@@ -66,6 +69,6 @@ def main():
     fig = ox.plot_graph_route(graph, route, node_size=0)
 
     fig.show()
-
+    
 if __name__ == '__main__':
     main()
