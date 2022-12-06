@@ -74,9 +74,9 @@ class Form(QWidget):
         self.preview = QWebEngineView()
         dirname = os.path.dirname(__file__)
         filename = os.path.join(dirname, 'route.html')
-        url = QUrl(filename)
+        url = QUrl.fromLocalFile(filename)
         print(os.path.exists(filename))
-        self.preview.load()
+        self.preview.load(url)
 
         # Create the layout and add the widgets to it
         layout = QVBoxLayout()
