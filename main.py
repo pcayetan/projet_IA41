@@ -71,7 +71,7 @@ class MainClass:
         print("Distance:", distance, "meters")
 
         # Create a graph from the OpenStreetMap data
-        graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive')
+        graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive', simplify=False)
         #graph = ox.graph_from_place(self.place, simplify=True, network_type=self.mode)
 
 
