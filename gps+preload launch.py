@@ -4,6 +4,7 @@
 import osmnx as ox
 import geoip2.database
 import requests
+import folium
 
 ox.settings.log_console = True
 ox.settings.use_cache = True
@@ -34,4 +35,9 @@ G = ox.add_edge_travel_times(G)
 
 fig = ox.plot_graph(G, node_size=0.5)
 
-fig.show()
+# Use folium to plot the map
+m = folium.Map(location=[latitude, longitude], zoom_start=15)
+
+# Add the map to the web page
+m.save('route.html')
+
