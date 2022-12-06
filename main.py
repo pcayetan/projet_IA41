@@ -61,13 +61,15 @@ class Form(QWidget):
     def initUI(self):
         # Set the window size
         self.setFixedSize(800, 800)
-        
+        self.setWindowTitle("Map Viewer")
         # Create the input fields
         self.input1 = QLineEdit()
+        self.input1.setPlaceholderText("Start location")
         self.input2 = QLineEdit()
+        self.input2.setPlaceholderText("End location")
         
         # Create the button and connect it to the handleButtonClick() method
-        self.button = QPushButton("Run Function")
+        self.button = QPushButton("Submit")
         self.button.clicked.connect(self.handleButtonClick)
         
         # Create the HTML preview widget
