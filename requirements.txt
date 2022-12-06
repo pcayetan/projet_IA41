@@ -3,3 +3,4 @@ scikit-learn
 folium
 pyqt5
 pyqt5-tools
+geopy
