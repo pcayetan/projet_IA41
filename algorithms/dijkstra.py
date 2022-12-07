@@ -17,8 +17,10 @@ def dijkstra(Graph, source, target):
          Edge data key corresponding to the edge weight
     Returns:
     --------
-    distance : dictionary
-         Dictionary of shortest weighted paths keyed by target.
+    time : float
+        Shortest time from source to target.
+    path : list
+        List of nodes in a shortest path.
     """
 
     if source == target:
