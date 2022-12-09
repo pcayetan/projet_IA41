@@ -1,8 +1,7 @@
 from heapq import heappop, heappush
 import networkx as nx
 import math
-
-
+ 
 
 def astar(Graph, source, target):
     """Find shortest weighted paths in G from source to target using  A* algorithm.
@@ -41,7 +40,7 @@ def astar(Graph, source, target):
             # Calculate the great circle distance between the two points
             a = math.sin((lat2-lat1)/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin((lon2-lon1)/2)**2
             c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-            d = 6371 * c 
+            d = 6371000 * c 
             
             return d
 
