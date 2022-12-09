@@ -1,7 +1,8 @@
-import algorithms.dijkstra as dijkstra
+from algorithms import dijkstra
+from algorithms import astar
 #Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
 
-def construct_graph(graph, nodes):
+def construct_graph(graph, nodes, algorithm = dijkstra.dijkstra):
     """Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
     The graph is represented as a dictionary of dictionaries. The keys are the nodes of the graph,
     and the values are dictionaries containing the time needed to travel between the node and its neighbors and 
@@ -25,7 +26,7 @@ def construct_graph(graph, nodes):
                 continue
 
             #Find the shortest path between the two nodes
-            time, path = dijkstra.dijkstra(graph, start_node, end_node)
+            time, path = algorithm(graph, start_node, end_node)
 
             #Add the path to the graph
             G[start_node][end_node] = (time, path)
