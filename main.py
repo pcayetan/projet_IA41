@@ -1,6 +1,6 @@
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 import osmnx as ox
@@ -57,7 +57,7 @@ class MainClass:
 
         return distance
 
-    def findShortestRoute(self, start_latlng, end_latlng):
+    def findShortestRoute(self, start_latlng, end_latlng, algorithm):
         # Create the graph from OSM within the boundaries of some
         # geocodable place(s)
         lat1 = start_latlng[1]
@@ -85,8 +85,11 @@ class MainClass:
         # find the nearest node to the end location
         destination = ox.nearest_nodes(graph, end_latlng[0], end_latlng[1])
         # find the shortest path between origin and destination
+        if algorithm == "A*":
+            distance, route = astar.astar(graph, origin, destination)
+        elif algorithm == "Dijkstra":
+            distance, route = dijkstra.dijkstra(graph, origin, destination)
         #distance, route = dijkstra.dijkstra(graph, origin, destination)
-        distance, route = astar.astar(graph, origin, destination)
         # return the route
         return graph, distance, route
 
@@ -104,6 +107,11 @@ class Form(QWidget):
         self.input1.setPlaceholderText("Start location")
         self.input2 = QLineEdit()
         self.input2.setPlaceholderText("End location")
+
+        # Create the drop-down menu
+        self.algorithmComboBox = QComboBox()
+        self.algorithmComboBox.addItem("A*")
+        self.algorithmComboBox.addItem("Dijkstra")
         
         # Create the button and connect it to the handleButtonClick() method
         self.button = QPushButton("Submit")
@@ -121,6 +129,7 @@ class Form(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.input1)
         layout.addWidget(self.input2)
+        layout.addWidget(self.algorithmComboBox)
         layout.addWidget(self.button)
         layout.addWidget(self.preview)
         self.setLayout(layout)
@@ -145,7 +154,7 @@ class Form(QWidget):
         
         # Call the findShortestRoute() method, passing the start and end locations as arguments
         try:
-            graph, distance, route = main_class.findShortestRoute(start_latlng, end_latlng)
+            graph, distance, route = main_class.findShortestRoute(start_latlng, end_latlng, self.algorithmComboBox.currentText())
         except:
             return "No route found between the given locations. Please select two different locations"
         # Plot the route on a map and save it as an HTML file
