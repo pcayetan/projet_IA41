@@ -5,6 +5,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 import osmnx as ox
 import algorithms.dijkstra as dijkstra
+import algorithms.astar as astar
 import algorithms.ant_colony as ant_colony
 import math
 from folium import Marker, Icon
@@ -84,7 +85,8 @@ class MainClass:
         # find the nearest node to the end location
         destination = ox.nearest_nodes(graph, end_latlng[0], end_latlng[1])
         # find the shortest path between origin and destination
-        distance, route = dijkstra.dijkstra(graph, origin, destination)
+        #distance, route = dijkstra.dijkstra(graph, origin, destination)
+        distance, route = astar.astar(graph, origin, destination)
         # return the route
         return graph, distance, route
 
