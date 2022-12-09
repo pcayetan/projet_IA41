@@ -20,7 +20,8 @@ def astar(Graph, source, target):
     distance : dictionary
          Dictionary of shortest weighted paths keyed by target.
     """
-
+    print("A*")
+    
     if source == target:
         return (0, [source])
         
