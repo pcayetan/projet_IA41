@@ -1,6 +1,6 @@
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QSizePolicy
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 import osmnx as ox
@@ -99,8 +99,7 @@ class Form(QWidget):
         self.initUI()
     
     def initUI(self):
-        # Set the window size
-        self.setFixedSize(800, 800)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setWindowTitle("Map Viewer")
         # Create the input fields
         self.input1 = QLineEdit()
@@ -181,21 +180,20 @@ class Form(QWidget):
         inputs_list.append(inputs_list.pop(1))
         # Print the list
         print(inputs_list)
+        # Return the list
+        return inputs_list
 
     def handleButtonClick(self):
         # Get the input from the fields
-        input1 = self.input1.text()
-        input2 = self.input2.text()
 
-        if input1 == "" or input2 == "":
-            QMessageBox.about(self, 'Error', 'Please enter a valid location')
-        else:
-            input1 = ox.geocode(input1)
-            input2 = ox.geocode(input2)
+        input_list = self.print_inputs()
+        geocode_list = []
         
-        # Convert the input to float values
-        start_latlng = (float(input1[1]), float(input1[0]))
-        end_latlng = (float(input2[1]), float(input2[0]))    
+        for input in input_list:
+            geocode_list.append(ox.geocode(input))
+        
+        start_latlng = (float(geocode_list[0][1]), float(geocode_list[0][0]))
+        end_latlng = (float(geocode_list[1][1]), float(geocode_list[1][0]))
         
         # Create an instance of the MainClass
         main_class = MainClass()
