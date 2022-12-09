@@ -180,21 +180,20 @@ class Form(QWidget):
         inputs_list.append(inputs_list.pop(1))
         # Print the list
         print(inputs_list)
+        # Return the list
+        return inputs_list
 
     def handleButtonClick(self):
         # Get the input from the fields
-        input1 = self.input1.text()
-        input2 = self.input2.text()
 
-        if input1 == "" or input2 == "":
-            QMessageBox.about(self, 'Error', 'Please enter a valid location')
-        else:
-            input1 = ox.geocode(input1)
-            input2 = ox.geocode(input2)
+        input_list = self.print_inputs()
+        geocode_list = []
         
-        # Convert the input to float values
-        start_latlng = (float(input1[1]), float(input1[0]))
-        end_latlng = (float(input2[1]), float(input2[0]))    
+        for input in input_list:
+            geocode_list.append(ox.geocode(input))
+        
+        start_latlng = (float(geocode_list[0][1]), float(geocode_list[0][0]))
+        end_latlng = (float(geocode_list[1][1]), float(geocode_list[1][0]))
         
         # Create an instance of the MainClass
         main_class = MainClass()
