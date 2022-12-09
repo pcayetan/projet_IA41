@@ -31,23 +31,24 @@ latitude = response.location.latitude
 longitude = response.location.longitude
 
 # Use OSMnx to get the nearest network to the user's location
-G = ox.graph_from_point((latitude, longitude), dist=500, network_type='drive')
+G = ox.graph_from_point((latitude, longitude), dist=1000, network_type='drive')
 
 G = ox.add_edge_speeds(G)
 # calculate travel time (seconds) for all edges
 G = ox.add_edge_travel_times(G)
 
+end_time = time.time()
+
 fig = ox.plot_graph(G, node_size=0.5, show=False)
 
-end_time = time.time()
 
 #show the plot
 
 # Use folium to plot the map
-#m = folium.Map(location=[latitude, longitude], zoom_start=15)
+m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
 # Add the map to the web page
-#m.save('route.html')
+m.save('route.html')
 
 # Calculate the elapsed time
 elapsed_time = end_time - start_time

@@ -1,10 +1,11 @@
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QSizePolicy
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 import osmnx as ox
 import algorithms.dijkstra as dijkstra
+import algorithms.astar as astar
 import algorithms.ant_colony as ant_colony
 import math
 from folium import Marker, Icon
@@ -56,7 +57,7 @@ class MainClass:
 
         return distance
 
-    def findShortestRoute(self, start_latlng, end_latlng):
+    def findShortestRoute(self, start_latlng, end_latlng, algorithm):
         # Create the graph from OSM within the boundaries of some
         # geocodable place(s)
         lat1 = start_latlng[1]
@@ -84,7 +85,11 @@ class MainClass:
         # find the nearest node to the end location
         destination = ox.nearest_nodes(graph, end_latlng[0], end_latlng[1])
         # find the shortest path between origin and destination
-        distance, route = dijkstra.dijkstra(graph, origin, destination)
+        if algorithm == "A*":
+            distance, route = astar.astar(graph, origin, destination)
+        elif algorithm == "Dijkstra":
+            distance, route = dijkstra.dijkstra(graph, origin, destination)
+        #distance, route = dijkstra.dijkstra(graph, origin, destination)
         # return the route
         return graph, distance, route
 
@@ -94,14 +99,18 @@ class Form(QWidget):
         self.initUI()
     
     def initUI(self):
-        # Set the window size
-        self.setFixedSize(800, 800)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setWindowTitle("Map Viewer")
         # Create the input fields
         self.input1 = QLineEdit()
         self.input1.setPlaceholderText("Start location")
         self.input2 = QLineEdit()
         self.input2.setPlaceholderText("End location")
+
+        # Create the drop-down menu
+        self.algorithmComboBox = QComboBox()
+        self.algorithmComboBox.addItem("A*")
+        self.algorithmComboBox.addItem("Dijkstra")
         
         # Create the button and connect it to the handleButtonClick() method
         self.button = QPushButton("Submit")
@@ -115,14 +124,63 @@ class Form(QWidget):
         print(os.path.exists(filename))
         self.preview.load(url)
 
+        self.inputs = []
+        # Add the widget to the list of inputs
+        self.inputs.append(self.input1)     
+
+        # Add the widget to the list of inputs
+        self.inputs.append(self.input2)
+
+        # Create a QPushButton widget
+        self.button1 = QPushButton("+")  
+
+        # Connect the clicked signal of the button to a slot
+        self.button1.clicked.connect(self.add_input)
+
+        # Create a second QPushButton widget
+        self.button2 = QPushButton("Print inputs")
+
+        # Connect the clicked signal of the button to a slot
+        self.button2.clicked.connect(self.print_inputs)
+
         # Create the layout and add the widgets to it
-        layout = QVBoxLayout()
-        layout.addWidget(self.input1)
-        layout.addWidget(self.input2)
-        layout.addWidget(self.button)
-        layout.addWidget(self.preview)
-        self.setLayout(layout)
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.input1)
+        self.layout.addWidget(self.input2)
+        self.layout.addWidget(self.button1)
+        self.layout.addWidget(self.algorithmComboBox)
+        self.layout.addWidget(self.button)
+        self.layout.addWidget(self.preview)
+        self.layout.addWidget(self.button2)
+        self.setLayout(self.layout)
         
+    def add_input(self):
+        # Create a new QLineEdit widget
+        self.input = QLineEdit()
+
+        # Set the placeholder text for the widget
+        self.input.setPlaceholderText("New input")
+
+        # Add the widget to the list of inputs
+        self.inputs.append(self.input)
+
+        # Add the widget to the layout
+        self.layout.addWidget(self.input)
+
+    def print_inputs(self):
+        # Create an empty list to store the text entered in the inputs
+        inputs_list = []
+        # Use a for loop to add the text entered in each input to the list
+        for input in self.inputs:
+            # Check if the input is empty
+            if input.text():
+                # Add the text entered in the input to the list
+                inputs_list.append(input.text())
+        # Move the second input to the end of the list
+        inputs_list.append(inputs_list.pop(1))
+        # Print the list
+        print(inputs_list)
+
     def handleButtonClick(self):
         # Get the input from the fields
         input1 = self.input1.text()
@@ -143,7 +201,7 @@ class Form(QWidget):
         
         # Call the findShortestRoute() method, passing the start and end locations as arguments
         try:
-            graph, distance, route = main_class.findShortestRoute(start_latlng, end_latlng)
+            graph, distance, route = main_class.findShortestRoute(start_latlng, end_latlng, self.algorithmComboBox.currentText())
         except:
             return "No route found between the given locations. Please select two different locations"
         # Plot the route on a map and save it as an HTML file

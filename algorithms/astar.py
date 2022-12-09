@@ -1,5 +1,7 @@
 from heapq import heappop, heappush
 import networkx as nx
+import math
+
 
 
 def astar(Graph, source, target):
@@ -18,17 +20,31 @@ def astar(Graph, source, target):
     distance : dictionary
          Dictionary of shortest weighted paths keyed by target.
     """
-
+    print("A*")
+    
     if source == target:
         return (0, [source])
-
-    # Define a heuristic function that calculates the Euclidean distance between two points
+        
     def heuristic(u, v):
-        pos_u = Graph.nodes[u]["pos"]
-        pos_v = Graph.nodes[v]["pos"]
-        #to change heuristics to convert location into meters
-        return (((pos_u[0] - pos_v[0])**2 + (pos_u[1] - pos_v[1])**2)**0.5) * 13.88 #50 km/h
-    
+            # Get the latitude and longitude coordinates of the nodes
+            lat1 = Graph.nodes[u]["y"]
+            lon1 = Graph.nodes[u]["x"]
+            lat2 = Graph.nodes[v]["y"]
+            lon2 = Graph.nodes[v]["x"]
+            
+            # Convert the coordinates to radians
+            lat1 = lat1 * math.pi / 180
+            lon1 = lon1 * math.pi / 180
+            lat2 = lat2 * math.pi / 180
+            lon2 = lon2 * math.pi / 180
+            
+            # Calculate the great circle distance between the two points
+            a = math.sin((lat2-lat1)/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin((lon2-lon1)/2)**2
+            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+            d = 6371 * c 
+            
+            return d
+
     push = heappush
     pop = heappop
 
@@ -86,7 +102,7 @@ def astar(Graph, source, target):
 
 def travel_time_route(u, v, graph):
     """Return the travel time of a route."""
-    return graph[u][v][0]['travel_time'] if 'travel_time' in graph[u][v][0] else 8.33*graph[u][v][0]["lenght"] # 30 km/h
+    return graph[u][v][0]['travel_time'] if 'travel_time' in graph[u][v][0] else 8.33*graph[u][v][0]["length"] # 30 km/h
 
 def weight_node(u, v, data, graph, direction):
     """Return the weight of an edge."""
