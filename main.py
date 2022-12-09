@@ -10,6 +10,7 @@ import algorithms.ant_colony as ant_colony
 import math
 from folium import Marker, Icon
 import matplotlib.pyplot as plt
+from graph_tools import TSP_solver
 
 class MainClass:
     # Define class attributes
@@ -192,24 +193,20 @@ class Form(QWidget):
         for input in input_list:
             geocode_list.append(ox.geocode(input))
         
-        start_latlng = (float(geocode_list[0][1]), float(geocode_list[0][0]))
-        end_latlng = (float(geocode_list[1][1]), float(geocode_list[1][0]))
         
-        # Create an instance of the MainClass
-        main_class = MainClass()
         
-        # Call the findShortestRoute() method, passing the start and end locations as arguments
+        # Call the construct_graph method, passing the start and end locations as arguments
         try:
-            graph, distance, route = main_class.findShortestRoute(start_latlng, end_latlng, self.algorithmComboBox.currentText())
+            graph, route = TSP_solver.construct_graph(geocode_list, algorithm1=self.algorithmComboBox.currentText())
         except:
             return "No route found between the given locations. Please select two different locations"
         # Plot the route on a map and save it as an HTML file
         route_map = ox.plot_route_folium(graph, route, tiles='openstreetmap', route_color="red" , route_width=10)
         #route_map.save('route.html')
-        start_marker = Marker(location=start_latlng[::-1], popup='Start Location', icon=Icon(icon='glyphicon-flag', color='green'))
 
-        # Create a folium.Marker instance for the end location, using the end_latlng coordinates
-        end_marker = Marker(location=end_latlng[::-1], popup='End Location', icon=Icon(icon='glyphicon-flag', color='red'))
+        # Create a Marker object for the start location
+        start_latlng = (float(geocode_list[0][1]), float(geocode_list[0][0]))
+        start_marker = Marker(location=(start_latlng[::-1]), popup='Start Location', icon=Icon(icon='glyphicon-flag', color='green'))
 
         # Add the start and end markers to the route_map
         start_marker.add_to(route_map)
