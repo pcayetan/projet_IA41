@@ -1,7 +1,7 @@
 from graph_tools import ConstructGraph
 import osmnx as ox
 
-def construct_graph(nodesgeocode, algorithm1 = "dijkstra", algorithm2="ant_colony"):
+def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colony"):
     """Construct a graph with only the nodes latitude and longitude to visit with the algorithm1 and solve the TSP problem with the algorithm2
 
     Args:
@@ -43,5 +43,5 @@ def construct_graph(nodesgeocode, algorithm1 = "dijkstra", algorithm2="ant_colon
     #Solve the TSP problem with the algorithm2
 
     #return the solution
-    return nodes
+    return graph, nodes
     
