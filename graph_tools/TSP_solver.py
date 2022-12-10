@@ -40,8 +40,14 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     #Create a graph with only the nodes to visit with the algorithm1
     simplified_graph = ConstructGraph.construct_graph(graph, nodes, algorithm1)
 
+    #If there is only two nodes, return the path between them
+    if len(nodesgeocode) == 2:
+        path = simplified_graph[nodes[0]][nodes[1]]["path"]
+        return graph, path
+
     #Solve the TSP problem with the algorithm2
+    
 
     #return the solution
-    return graph, nodes
+    return graph, path
     

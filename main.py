@@ -210,7 +210,6 @@ class Form(QWidget):
 
         # Add the start and end markers to the route_map
         start_marker.add_to(route_map)
-        end_marker.add_to(route_map)
 
 
         # Save the HTML file
