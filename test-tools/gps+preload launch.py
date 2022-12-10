@@ -39,7 +39,7 @@ G = ox.add_edge_travel_times(G)
 
 end_time = time.time()
 
-fig = ox.plot_graph(G, node_size=0.5, show=True)
+fig = ox.plot_graph(G, node_size=0.5, show=False)
 
 
 #show the plot

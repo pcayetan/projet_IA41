@@ -20,7 +20,8 @@ def dijkstra(Graph, source, target):
     distance : dictionary
          Dictionary of shortest weighted paths keyed by target.
     """
-
+    print("Dijkstra")
+    
     if source == target:
         return (0, [source])
     
@@ -81,7 +82,7 @@ def dijkstra(Graph, source, target):
 
 def travel_time_route(u, v, graph):
     """Return the travel time of a route."""
-    return graph[u][v][0]['travel_time'] if 'travel_time' in graph[u][v][0] else 8.33*graph[u][v][0]["lenght"] # 30 km/h
+    return graph[u][v][0]['travel_time'] if 'travel_time' in graph[u][v][0] else 8.33*graph[u][v][0]["length"] # 30 km/h
 
 def weight_node(u, v, data, graph, direction):
     """Return the weight of an edge."""
