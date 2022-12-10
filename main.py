@@ -188,10 +188,15 @@ class Form(QWidget):
         # Get the input from the fields
 
         input_list = self.print_inputs()
+        input_list = ['Belfort', 'Botans', 'andelnans', 'Danjoutin', 'Sevenans']
         geocode_list = []
         
         for input in input_list:
-            geocode_list.append(ox.geocode(input))
+            try:
+                geocode_list.append(ox.geocode(input))
+            except:
+                print("Please enter a valid location")
+                return
         
         
         

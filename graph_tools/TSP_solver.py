@@ -1,4 +1,5 @@
 from graph_tools import ConstructGraph
+from algorithms import ant_colony
 import osmnx as ox
 
 def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colony"):
@@ -46,8 +47,12 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
         return graph, path
 
     #Solve the TSP problem with the algorithm2
+    colony = ant_colony.ant_colony(simplified_graph, nodes[0])
+    
+    path, time = colony.run()
+
     
 
     #return the solution
-    return graph, path
+    return graph, path, time
     
