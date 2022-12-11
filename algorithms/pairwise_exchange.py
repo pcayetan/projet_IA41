@@ -54,21 +54,20 @@ def get_path_graphs(ring_graph: nx.DiGraph)-> list[nx.DiGraph]:
     return path_graph_list
 
 def exchange_nodes(star_graph: nx.DiGraph, ring_graph: nx.DiGraph, recursion: int):
-    print(ring_graph.edges)
     edges = list(ring_graph.edges)
     
     #get a random edge and convert to list
     switch_edge1 = list(edges.pop(edges.index(choice(edges))))
+    switch_edge1.append(star_graph.get_edge_data(*switch_edge1))
     # remove neighbor edges
     edges = [edge for edge in edges if not(switch_edge1[0] in edge or switch_edge1[1] in edge)]
     #get a random edge and convert to list
     switch_edge2 = list(edges.pop(edges.index(choice(edges))))
-    print(f"swiched_edges: {switch_edge1}, {switch_edge2}")
+    switch_edge2.append(star_graph.get_edge_data(*switch_edge1))
     ring_graph.remove_edges_from([switch_edge1, switch_edge2])
     
     # swap edges
     switch_edge1[1], switch_edge2[0] = switch_edge2[0], switch_edge1[1]   
-    print(f"swiched_edges: {switch_edge1}, {switch_edge2}")
     # ring graph is currently composed of 2 path graphs
     list_path_graph_nodes = get_path_graphs(ring_graph)
     path_graph_A = ring_graph.copy()
@@ -77,22 +76,16 @@ def exchange_nodes(star_graph: nx.DiGraph, ring_graph: nx.DiGraph, recursion: in
     path_graph_B.remove_nodes_from(list_path_graph_nodes[1])
     # needs changing direction to connect the changed edges
     path_graph_A = path_graph_A.reverse()
-    print(f"graph A: {path_graph_A.edges}")
-    print(f"graph B rev: {path_graph_B.edges}")
     
     ring_graph = nx.union(path_graph_A, path_graph_B)
-    print(f"graph join: {ring_graph.edges}")
     ring_graph.add_edges_from([switch_edge1, switch_edge2])
-    
-    print(f"edges: {ring_graph.edges}")
-    print(f"rec {recursion}, size: ", ring_graph.size(weight="weight"))
     
     # return swapped graph
     if recursion == 0:
         return ring_graph
     
-    new_ring_graph = exchange_nodes(star_graph, ring_graph, recursion - 1)
-    
+    new_ring_graph = exchange_nodes(star_graph, ring_graph.copy(), recursion - 1)
+
     # return the smallest weighted paths
     if new_ring_graph.size(weight="weight") < ring_graph.size(weight="weight"):
         return new_ring_graph
@@ -124,5 +117,5 @@ graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive', sim
 star_graph = multiNodes_to_starGraph(graph, node_list)
 ring_graph = starGraph_to_ringGraph(star_graph)
 ring_graph = exchange_nodes(star_graph, ring_graph, 4)
-print("edges", ring_graph.edges)
+print("edges", ring_graph.edges.data(data="weight"))
 print("size: ", ring_graph.size(weight="weight"))
