@@ -21,8 +21,10 @@ def construct_graph(graph, nodes, algorithm = "dijkstra"):
 
     #Select the algorithm to use
     if algorithm == "Dijkstra":
+        print("Dijkstra")
         function = dijkstra.dijkstra
     elif algorithm == "A*":
+        print("A*")
         function = astar.astar
     else:
         raise ValueError("Unknown algorithm")
@@ -36,8 +38,9 @@ def construct_graph(graph, nodes, algorithm = "dijkstra"):
             #Find the shortest path between the two nodes
             time, path = function(graph, start_node, end_node)
 
-            #Add the path to the graph
-            G[start_node][end_node] = {"time": time, "path": path}
+            if(time != float("inf")):
+                #Add the path to the graph
+                G[start_node][end_node] = {"time": time, "path": path}
             
     
     return G
