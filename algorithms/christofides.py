@@ -1,9 +1,6 @@
 
-import math
-
 import networkx as nx
-from networkx.algorithms.tree.mst import random_spanning_tree
-from networkx.utils import not_implemented_for, pairwise, py_random_state
+from networkx.utils import pairwise
 
 
 def christofides(G, weight="weight"):
@@ -25,7 +22,7 @@ def christofides(G, weight="weight"):
         raise nx.NetworkXError("G must be a complete graph.")
 
     # 1. Create a minimum spanning tree T of G.
-    tree = nx.minimum_spanning_tree(G, weight=weight) #TODO
+    tree = nx.minimum_spanning_tree(G, weight=weight) 
 
     # 2. Let O be the set of vertices with odd degree in T. By the handshaking lemma, O has an even number of vertices.
     L = G.copy()
