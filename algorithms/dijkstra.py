@@ -22,7 +22,6 @@ def dijkstra(Graph, source, target):
     path : list
         List of nodes in a shortest path.
     """
-    print("Dijkstra")
     
     if source == target:
         return (0, [source])

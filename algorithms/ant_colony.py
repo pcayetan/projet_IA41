@@ -3,9 +3,9 @@ from threading import Thread
 
 class ant_colony:
 
-    class ant():
+    class ant(Thread):
 
-        def __init__(self, graph, start, alpha, beta, first_pass=False, heuristic=None):
+        def __init__(self, graph, start_node, alpha, beta, first_pass=False, heuristic=None):
             """Create an ant
             
             Args:
@@ -13,12 +13,12 @@ class ant_colony:
                 start: The node where the ant starts
                 alpha: The alpha parameter of the algorithm, usually smaller than 1
                 beta: The beta parameter of the algorithm, usually bigger than 1"""
-            #Thread.__init__(self)
+            Thread.__init__(self)
 
             self.graph = graph
-            self.start = start
-            self.path = [start]
-            self.current = start
+            self.start_node = start_node
+            self.path = [start_node]
+            self.current = start_node
             self.distance = 0
             self.alpha = alpha
             self.beta = beta
@@ -34,6 +34,7 @@ class ant_colony:
             while len(self.path) < len(self.graph):
                 self._move()
 
+            self.path.append(self.start_node)
             self.finished = True
 
         def _move(self):
@@ -49,8 +50,9 @@ class ant_colony:
 
             #If there is no neighbor, the ant is stuck
             if len(neighbors) == 0:
-                self.distance += self.graph[self.current][self.start]["time"]
-                self.current = self.start
+                self.distance += self.graph[self.current][self.start_node]["time"]
+                self.current = self.start_node
+                self.path.append(self.start_node)
 
                 self.finished = True
                 return
@@ -92,8 +94,12 @@ class ant_colony:
                     sum_of_probabilities += probabilities[node]
 
             #Normalize the probabilities
-            for node in visitable_nodes:
-                probabilities[node] /= sum_of_probabilities
+            if sum_of_probabilities == 0:
+                for node in visitable_nodes:
+                    probabilities[node] = 1 / len(visitable_nodes)
+            else:
+                for node in visitable_nodes:
+                    probabilities[node] /= sum_of_probabilities
 
             #Compute the probability
             return probabilities
@@ -130,7 +136,7 @@ class ant_colony:
                 The heuristic of the node"""
             return 1 / self.graph[self.current][node]["time"]
         
-    def __init__(self, graph, start, alpha=0.5, beta=2, rho=0.5, n_ants=10, n_iterations=100, first_pass=True, heuristic=None):
+    def __init__(self, graph, start_node, alpha=0.5, beta=2, rho=0.5, n_ants=10, n_iterations=100, first_pass=True, heuristic=None):
         """Create an ant_colony object
         
         Args:
@@ -145,7 +151,7 @@ class ant_colony:
             heuristic: The heuristic function to use"""
 
         self.graph = graph
-        self.start = start
+        self.start_node = start_node
         if alpha < 0 :
             raise ValueError("alpha must be positive")
         self.alpha = alpha
@@ -180,15 +186,15 @@ class ant_colony:
         #Create the ants
         self.ants = []
         for i in range(self.n_ants):
-            self.ants.append(self.ant(self.graph, self.start, self.alpha, self.beta, self.first_pass, self.heuristic))
+            self.ants.append(self.ant(self.graph, self.start_node, self.alpha, self.beta, self.first_pass, self.heuristic))
 
         #Start the ants, they will run in parallel
         for ant in self.ants:
-            ant.run()
+            ant.start()
 
         #Wait for the ants to finish
-        """for ant in self.ants:
-            ant.join()"""
+        for ant in self.ants:
+            ant.join()
 
         #Update the pheromone
         self._update_pheromone()

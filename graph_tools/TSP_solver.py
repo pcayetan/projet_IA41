@@ -1,6 +1,7 @@
 from graph_tools import ConstructGraph
 from algorithms import ant_colony
 import osmnx as ox
+import time as timestamp
 
 def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colony"):
     """Construct a graph with only the nodes latitude and longitude to visit with the algorithm1 and solve the TSP problem with the algorithm2
@@ -20,6 +21,8 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     minlon = min([float(longitude) for latitude, longitude in nodesgeocode])
     maxlon = max([float(longitude) for latitude, longitude in nodesgeocode])
 
+    print(minlat, maxlat, minlon, maxlon)
+
     #Padding to get a bigger area
     padding = 0.01
     minlat -= padding
@@ -38,20 +41,32 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     for latitude, longitude in nodesgeocode:
         nodes.append(ox.nearest_nodes(graph, float(longitude), float(latitude)))
 
+    #Mesure the time to run the first algorithm
+    start = timestamp.time()
     #Create a graph with only the nodes to visit with the algorithm1
     simplified_graph = ConstructGraph.construct_graph(graph, nodes, algorithm1)
+    end = timestamp.time()
+    print("Time to construct the graph: ", end - start)
 
     #If there is only two nodes, return the path between them
     if len(nodesgeocode) == 2:
         path = simplified_graph[nodes[0]][nodes[1]]["path"]
         return graph, path
 
+    #Mesure the time to run the second algorithm
+    start = timestamp.time()
     #Solve the TSP problem with the algorithm2
-    colony = ant_colony.ant_colony(simplified_graph, nodes[0])
+    colony = ant_colony.ant_colony(simplified_graph, nodes[0],n_ants=25)
     
-    path, time = colony.run()
+    simplified_path, time = colony.run()
+    end = timestamp.time()
+    print("Time to solve the TSP problem: ", end - start)
 
-    
+    #Find the path in the original graph
+    path = [nodes[0]]
+    for i in range(len(simplified_path)-1):
+        path += simplified_graph[simplified_path[i]][simplified_path[i+1]]["path"][1:]
+        
 
     #return the solution
     return graph, path, time
