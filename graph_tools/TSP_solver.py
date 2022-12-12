@@ -51,7 +51,7 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     #If there is only two nodes, return the path between them
     if len(nodesgeocode) == 2:
         path = simplified_graph[nodes[0]][nodes[1]]["path"]
-        return graph, path
+        return graph, path, simplified_graph[nodes[0]][nodes[1]]["time"]
 
     #Mesure the time to run the second algorithm
     start = timestamp.time()
