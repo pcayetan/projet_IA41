@@ -84,9 +84,9 @@ class MainClass:
         # calculate travel time (seconds) for all edges
         graph = ox.add_edge_travel_times(graph)
         # find the nearest node to the start location
-        origin = ox.nearest_nodes(graph, start_latlng[0], start_latlng[1])
+        origin = ox.nearest_nodes(graph, *start_latlng)
         # find the nearest node to the end location
-        destination = ox.nearest_nodes(graph, end_latlng[0], end_latlng[1])
+        destination = ox.nearest_nodes(graph, *end_latlng)
         # find the shortest path between origin and destination
         if algorithm == "A*":
             distance, route = astar.astar(graph, origin, destination)
