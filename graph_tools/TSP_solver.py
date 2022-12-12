@@ -66,8 +66,11 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     path = [nodes[0]]
     for i in range(len(simplified_path)-1):
         path += simplified_graph[simplified_path[i]][simplified_path[i+1]]["path"][1:]
+    
+    #sort the geocode in the same order as the path
+    nodesgeocode = [nodesgeocode[nodes.index(node)] for node in simplified_path]
         
 
     #return the solution
-    return graph, path, time
+    return graph, path, time, nodesgeocode
     

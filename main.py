@@ -11,6 +11,8 @@ import math
 from folium import Marker, Icon
 import matplotlib.pyplot as plt
 from graph_tools import TSP_solver
+from folium.features import DivIcon
+    
 
 class MainClass:
     # Define class attributes
@@ -189,7 +191,7 @@ class Form(QWidget):
 
         input_list = self.print_inputs()
         #Line used to debug quickly
-        #input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
+        input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
         geocode_list = []
         
         for input in input_list:
@@ -204,7 +206,7 @@ class Form(QWidget):
         
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
-            graph, route, time = TSP_solver.construct_graph(geocode_list, algorithm1=self.algorithmComboBox.currentText())
+            graph, route, time, geocode_list = TSP_solver.construct_graph(geocode_list, algorithm1=self.algorithmComboBox.currentText())
         except:
             return "No route found between the given locations. Please select two different locations"
         # Plot the route on a map and save it as an HTML file
@@ -219,9 +221,11 @@ class Form(QWidget):
         start_marker.add_to(route_map)
 
         # Create a Marker object for each location in the route
-        for i in range(1, len(geocode_list)):
+        for i in range(1, len(geocode_list)-1):
             latlng = (float(geocode_list[i][1]), float(geocode_list[i][0]))
+            # create a Marker object for the location containing a number icon
             marker = Marker(location=(latlng[::-1]), popup='Location', icon=Icon(icon='glyphicon-flag', color='blue'))
+            marker = Marker(location=(latlng[::-1]), popup='Location', icon=DivIcon(icon_size=(150,36),icon_anchor=(7,20),html='<div style="font-size: 18pt; color : black">'+str(i)+'</div>'))
             marker.add_to(route_map)
 
 
