@@ -199,7 +199,8 @@ class Form(QWidget):
                 print("Please enter a valid location")
                 return
         
-        
+        # Create an instance of the MainClass
+        main_class = MainClass()
         
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
