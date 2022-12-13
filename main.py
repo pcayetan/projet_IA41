@@ -76,7 +76,7 @@ class MainClass:
 
         # Create a graph from the OpenStreetMap data
         graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive', simplify=False)
-        #graph = ox.graph_from_place(self.place, simplify=True, network_type=self.mode)
+        graph = ox.graph_from_place(self.place, simplify=True, network_type=self.mode)
 
 
         # impute speed on all edges missing data
