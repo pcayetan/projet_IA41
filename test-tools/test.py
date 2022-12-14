@@ -1,74 +1,49 @@
 import math
 import osmnx as ox
+import networkx as nx
+#from algorithms import christofides
+import numpy as np
+import random, re
+import matplotlib.pyplot as plt
+import sys
+import input_generator
+
+sys.path.insert(1, '/home/pierre_olivier/Documents/IA41/projet_IA41/algorithms')
+import christofides
+
 
 ox.settings.log_console = True
 ox.settings.use_cache = True
 
-def get_midpoint(lat1, lon1, lat2, lon2):
-    """Return the midpoint between two lat/long coordinates.
-    """
-    lat1_radians = math.radians(lat1)
-    lon1_radians = math.radians(lon1)
-    lat2_radians = math.radians(lat2)
-    lon2_radians = math.radians(lon2)
 
-    bx = math.cos(lat2_radians) * math.cos(lon2_radians - lon1_radians)
-    by = math.cos(lat2_radians) * math.sin(lon2_radians - lon1_radians)
-    lat_midpoint = math.atan2(math.sin(lat1_radians) + math.sin(lat2_radians), math.sqrt((math.cos(lat1_radians) + bx) ** 2 + by ** 2))
-    lon_midpoint = lon1_radians + math.atan2(by, math.cos(lat1_radians) + bx)
-
-    return math.degrees(lat_midpoint), math.degrees(lon_midpoint)
-
-def get_distance(lat1, lon1, lat2, lon2):
-    """Return the distance between two lat/long coordinates.
-    """
-    lat1_radians = math.radians(lat1)
-    lon1_radians = math.radians(lon1)
-    lat2_radians = math.radians(lat2)
-    lon2_radians = math.radians(lon2)
-
-    dlon = lon2_radians - lon1_radians
-    dlat = lat2_radians - lat1_radians
-    a = (math.sin(dlat / 2) ** 2) + math.cos(lat1_radians) * math.cos(lat2_radians) * (math.sin(dlon / 2) ** 2)
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    distance = 6371000 * c
-
-    return distance
 
 def main():
-    lat1 = 37.73004866666667
-    lon1 = -122.39446533333333
-    lat2 = 37.779444028651405
-    lon2 = -122.42601701484655
-
-    midpoint = get_midpoint(lat1, lon1, lat2, lon2)
-    distance = get_distance(lat1, lon1, lat2, lon2)
-
-    print("Midpoint:", midpoint)
-    print("Distance:", distance, "meters")
-
-    # Create a graph from the OpenStreetMap data
-    graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive')
-    #graph = ox.graph_from_place('San Francisco, California, United States', simplify=True, network_type='drive')
-    # impute speed on all edges missing data
-    graph = ox.add_edge_speeds(graph)
-    # calculate travel time (seconds) for all edges
-    graph = ox.add_edge_travel_times(graph)
-
-    # find the nearest node to the start location
-    origin = ox.nearest_nodes(graph, lat1, lon1)
-    # find the nearest node to the end location
-    destination = ox.nearest_nodes(graph, lat2, lon2)
-
-    # find the shortest path between origin and destination
-    shortest_path  = ox.shortest_path(graph, origin, destination, weight='travel_time')
-
-    route = shortest_path
-
-    # plot the route
-    fig = ox.plot_graph_route(graph, route, node_size=0)
-
-    fig.show()
     
+    coordinates_array = input_generator.get_communes_in_departement("Bas-Rhin", "U")
+
+    print(coordinates_array)
+
+
+    latitudes_array, longitudes_array = coordinates_array.T
+    # Create a graph from the OpenStreetMap data
+    graph, graph_strong = input_generator.graph_from_coordinates_array(coordinates_array, simplify=True, network_type='drive')
+    print("CREATED GRAPH")
+    
+    # impute speed on all edges missing data
+    graph_strong = ox.add_edge_speeds(graph_strong)
+    # calculate travel time (seconds) for all edges
+    graph_strong = ox.add_edge_travel_times(graph_strong)
+    nodes_array = ox.nearest_nodes(graph_strong, longitudes_array, latitudes_array)
+    print("ADDED NODES AND EDGES")
+    #route = nx.algorithms.approximation.traveling_salesman_problem(graph_strong, weight='travel_time', nodes=nodes_array, cycle=True)
+    route = christofides.traveling_salesman_problem(graph_strong, weight='travel_time', nodes=nodes_array, cycle=True)
+    print("CALCULATED ROUTE")
+    # find the shortest path between origin and destination
+    
+    # Plot the route on a map and save it as an HTML file
+    route_map = ox.plot_route_folium(graph_strong, route, tiles='openstreetmap', route_color="red" , route_width=10, )
+    route_map.save('route.html')
+    print("FINISHED")
+
 if __name__ == '__main__':
     main()
