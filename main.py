@@ -6,8 +6,12 @@ from PyQt5.QtCore import QUrl
 
 import osmnx as ox
 from folium import Marker, Icon
+from folium.features import DivIcon
 
 from graph_tools.TSP_solver import tsp_solver
+
+
+
 
 class MainClass:
     # Define class attributes
@@ -133,9 +137,14 @@ class Form(QWidget):
                 print("Please enter a valid location")
                 return
         
+        # Create an instance of the MainClass
+        main_class = MainClass()
+        
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
-            graph, route = tsp_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
+            graph, route, time, geocode_list = tsp_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
+            print("The time to travel the route is: ", time, " seconds")
+
         except:
             return "No route found between the given locations. Please select two different locations"
         # Plot the route on a map and save it as an HTML file
@@ -150,9 +159,11 @@ class Form(QWidget):
         start_marker.add_to(route_map)
 
         # Create a Marker object for each location in the route
-        for i in range(1, len(geocode_list)):
+        for i in range(1, len(geocode_list)-1):
             latlng = (float(geocode_list[i][1]), float(geocode_list[i][0]))
+            # create a Marker object for the location containing a number icon
             marker = Marker(location=(latlng[::-1]), popup='Location', icon=Icon(icon='glyphicon-flag', color='blue'))
+            marker = Marker(location=(latlng[::-1]), popup='Location', icon=DivIcon(icon_size=(150,36),icon_anchor=(7,20),html='<div style="font-size: 18pt; color : black">'+str(i)+'</div>'))
             marker.add_to(route_map)
 
 

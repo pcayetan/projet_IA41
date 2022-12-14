@@ -19,7 +19,7 @@ class ant_colony:
             self.start_node = start_node
             self.path = [start_node]
             self.current = start_node
-            self.distance = 0
+            self.distance = float(0)
             self.alpha = alpha
             self.beta = beta
             
@@ -170,14 +170,20 @@ class ant_colony:
 
     def run(self):
         """Run the algorithm"""
+        #Create the ants
+        best_ant = self.ant(self.graph, self.start_node, self.alpha, self.beta, self.first_pass, self.heuristic)
+        best_ant.path = []
+        best_ant.distance = float("inf")
+        #Run the iterations
         for i in range(self.n_iterations):
             self._iteration()
+            if self.first_pass:
+                best_ant = self.ants[0]
+            for ant in self.ants:
+                if ant.distance < best_ant.distance:
+                    best_ant = ant
         
         #Find the best ant
-        best_ant = self.ants[0]
-        for ant in self.ants:
-            if ant.distance < best_ant.distance:
-                best_ant = ant
 
         return best_ant.path, best_ant.distance
 
@@ -209,7 +215,12 @@ class ant_colony:
                 if not self.first_pass:
                     self.graph[edge][edge2]["pheromone"] *= (1 - self.rho)
                 else:
-                    self.graph[edge][edge2]["pheromone"] = 0
+                    max = 0
+                    #If it's the first pass, the pheromone is equal to 1 devided by the maximum distance
+                    for ant in self.ants:
+                        if ant.distance > max:
+                            max = ant.distance
+                    self.graph[edge][edge2]["pheromone"] = 1 / max
 
             #Add the pheromone
         for ant in self.ants:

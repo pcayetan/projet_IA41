@@ -47,15 +47,16 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides")
     start = timestamp.time()
     #If there is only two nodes, return the path between them
     if len(nodesgeocode) == 2:
+
         if algorithm2 == "christofides":
             path = simplified_graph[1][0][1]
+            time = None
         else:
             path = simplified_graph[nodes[0]][nodes[1]]["path"]
+            time = simplified_graph[nodes[0]][nodes[1]]["time"]
         end = timestamp.time()
         print("Time to find the path: ", end - start)
         return graph, path
-    
-
     
     if(algorithm2 == "ant_colony"):
         print("ant_colony")
@@ -78,8 +79,9 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides")
         for start_node, end_node in pairwise(undirected_path):
             path.extend(dic_path[start_node][end_node][:-1])
         path.append(end_node)
+        nodesgeocode = None
     end = timestamp.time()
     print("Time to solve the TSP problem: ", end - start)
-    
+
     #return the solution
-    return graph, path#, time
+    return graph, path, time, nodesgeocode
