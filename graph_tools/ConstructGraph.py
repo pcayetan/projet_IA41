@@ -66,15 +66,15 @@ def construct_graph(graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony
     for thread in threads:
         thread.join()
         
-        #Find the shortest path between the two nodes NOTE: sad to have to 
+        
         time, path = thread.time, thread.path
         if(algorithm2 == "ant_colony"):
             if(time != float("inf")):
                 #Add the path to the graph
-                G[start_node][end_node] = {"time": time, "path": path}
+                G[path[0]][path[-1]] = {"time": time, "path": path}
         elif(algorithm2 == "christofides"):
-            dic_path[start_node][end_node] = path
-            G.add_edge(start_node, end_node, weight=time)
+            dic_path[path[0]][path[-1]] = path
+            G.add_edge(path[0], path[-1], weight=time)
         else:
             raise ValueError("Unknown algorithm")
                     
