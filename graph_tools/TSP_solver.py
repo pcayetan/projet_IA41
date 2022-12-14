@@ -1,9 +1,9 @@
-import ConstructGraph,input_generator
+from graph_tools import ConstructGraph, input_generator
 from algorithms import ant_colony, christofides, dijkstra
 import osmnx as ox
 import time as timestamp
 from itertools import pairwise
-def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colony"):
+def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides"):
     """Construct a graph with only the nodes latitude and longitude to visit with the algorithm1 and solve the TSP problem with the algorithm2
 
     Args:
@@ -15,33 +15,48 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colony"):
         The path to visit the nodes in the order given by the algorithm2
     """
     nodes = []
+
+    start = timestamp.time()
     graph = input_generator.graph_from_coordinates_array(nodesgeocode)
     
-    # c'est moche de faire ça alors que pas besoin pour ant
-    graph_strongly_connected = ox.utils_graph.get_largest_component(graph, strongly=True)
-    undirected_graph = ox.get_undirected(graph_strongly_connected)
+    if(algorithm2=="Christofides"):
+        algorithm2 = "christofides"
+    elif(algorithm2=="Ant Algorithm"):
+        algorithm2 = "ant_colony"
+    else:
+        raise ValueError("Unknown 2nd algorithm")
+    
+    
 
     for latitude, longitude in nodesgeocode:
-        nodes.append(ox.nearest_nodes(graph_strongly_connected, float(longitude), float(latitude)))
-
-    #If there is only two nodes, return the path between them
-    if len(nodesgeocode) == 2:
-        path = simplified_graph[nodes[0]][nodes[1]]["path"]
-        return graph, path, simplified_graph[nodes[0]][nodes[1]]["time"]
+        nodes.append(ox.nearest_nodes(graph, float(longitude), float(latitude)))
     end = timestamp.time()
+    print("Time to create the graph: ", end - start)
+    
     
     
     #Mesure the time to run the first algorithm
     start = timestamp.time()
     #Create a graph with only the nodes to visit with the algorithm1
-    # c'est moche de faire ça alors que pas besoin pour ant
-    simplified_graph = ConstructGraph.construct_graph(graph, undirected_graph, nodes, algorithm1, algorithm2)
+    print(algorithm2)
+    simplified_graph = ConstructGraph.construct_graph(graph, nodes, algorithm1, algorithm2)
     end = timestamp.time()
     print("Time to simplify the graph: ", end - start)
 
-
     #Mesure the time to run the second algorithm
     start = timestamp.time()
+    #If there is only two nodes, return the path between them
+    if len(nodesgeocode) == 2:
+        if algorithm2 == "christofides":
+            path = simplified_graph[1][0][1]
+        else:
+            path = simplified_graph[nodes[0]][nodes[1]]["path"]
+        end = timestamp.time()
+        print("Time to find the path: ", end - start)
+        return graph, path
+    
+
+    
     if(algorithm2 == "ant_colony"):
         print("ant_colony")
         #Solve the TSP problem with the algorithm2
@@ -68,20 +83,3 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colony"):
     
     #return the solution
     return graph, path#, time
-
-
-if __name__ == '__main__':
-    input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
-    geocode_list = []
-    
-    geocode_to_place = {}
-    for input in input_list:
-        try:
-            geocode = ox.geocode(input)
-            geocode_list.append(geocode)
-            geocode_to_place[geocode] = input
-        except:
-            print("Please enter a valid location")
-    graph, best_path = tsp_solver(geocode_list, algorithm2="christofides")
-    route_map = ox.plot_route_folium(graph, best_path, tiles='openstreetmap', route_color="red" , route_width=10)   
-    route_map.save('route.html')

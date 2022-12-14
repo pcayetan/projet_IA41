@@ -50,4 +50,4 @@ def graph_from_coordinates_array(coordinates_array, simplify=True, network_type=
     graph  = ox.graph_from_bbox(north,south,east,west, simplify=simplify, network_type=network_type, truncate_by_edge=True)
     graph = ox.add_edge_speeds(graph)
     graph = ox.add_edge_travel_times(graph)
-    return graph
+    return ox.utils_graph.get_largest_component(graph, strongly=True)

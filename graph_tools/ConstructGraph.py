@@ -3,7 +3,7 @@ from algorithms import astar
 import networkx as nx
 #Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
 
-def construct_graph(graph, undirected_graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony", weight="weight"):
+def construct_graph(graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony", weight="weight"):
     """Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
     The graph is represented as a dictionary of dictionaries. The keys are the nodes of the graph,
     and the values are dictionaries containing the time needed to travel between the node and its neighbors and 
