@@ -215,7 +215,12 @@ class ant_colony:
                 if not self.first_pass:
                     self.graph[edge][edge2]["pheromone"] *= (1 - self.rho)
                 else:
-                    self.graph[edge][edge2]["pheromone"] = 0
+                    max = 0
+                    #If it's the first pass, the pheromone is equal to 1 devided by the maximum distance
+                    for ant in self.ants:
+                        if ant.distance > max:
+                            max = ant.distance
+                    self.graph[edge][edge2]["pheromone"] = 1 / max
 
             #Add the pheromone
         for ant in self.ants:

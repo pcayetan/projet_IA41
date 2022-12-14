@@ -76,7 +76,7 @@ class MainClass:
 
         # Create a graph from the OpenStreetMap data
         graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive', simplify=False)
-        graph = ox.graph_from_place(self.place, simplify=True, network_type=self.mode)
+        #graph = ox.graph_from_place(self.place, simplify=True, network_type=self.mode)
 
 
         # impute speed on all edges missing data
@@ -207,6 +207,7 @@ class Form(QWidget):
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
             graph, route, time, geocode_list = TSP_solver.construct_graph(geocode_list, algorithm1=self.algorithmComboBox.currentText())
+            print("The time to travel the route is: ", time, " seconds")
         except:
             return "No route found between the given locations. Please select two different locations"
         # Plot the route on a map and save it as an HTML file

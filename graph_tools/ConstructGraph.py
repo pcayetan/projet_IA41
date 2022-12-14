@@ -1,5 +1,6 @@
 from algorithms import dijkstra
 from algorithms import astar
+from threading import Thread
 #Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
 
 def construct_graph(graph, nodes, algorithm = "dijkstra"):
@@ -29,19 +30,42 @@ def construct_graph(graph, nodes, algorithm = "dijkstra"):
     else:
         raise ValueError("Unknown algorithm")
 
+    threads = []
     for start_node in nodes:
         for end_node in nodes:
 
             if start_node == end_node:
                 continue
 
-            #Find the shortest path between the two nodes
-            time, path = function(graph, start_node, end_node)
+            #Create a thread for each pair of nodes
+            thread = function_thread(graph, start_node, end_node, function)
+            thread.start()
+            threads.append(thread)
 
-            if(time != float("inf")):
-                #Add the path to the graph
-                G[start_node][end_node] = {"time": time, "path": path}
+
+
+    for thread in threads:
+        thread.join()
+
+        time, path = thread.time, thread.path
+
+        if(time != float("inf")):
+            #Add the path to the graph
+            G[path[0]][path[-1]] = {"time": time, "path": path}
             
     
     return G
+
+class function_thread(Thread):
+    def __init__(self, graph, start_node, end_node, algorithm):
+        Thread.__init__(self)
+        self.graph = graph
+        self.start_node = start_node
+        self.end_node = end_node
+        self.time = None
+        self.path = None
+        self.algorithm = algorithm
+
+    def run(self):
+        self.time, self.path = self.algorithm(self.graph, self.start_node, self.end_node)
     
