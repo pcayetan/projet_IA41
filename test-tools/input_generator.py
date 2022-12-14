@@ -48,5 +48,6 @@ def graph_from_coordinates_array(coordinates_array, simplify=True, network_type=
     north, west = np.max(coordinates_array, axis=0) 
     south, east = np.min(coordinates_array, axis=0)
     graph  = ox.graph_from_bbox(north,south,east,west, simplify=simplify, network_type=network_type, truncate_by_edge=True)
-    graph_strongly_connected = ox.utils_graph.get_largest_component(graph, strongly=True)
-    return graph, ox.get_undirected(graph_strongly_connected)
+    graph = ox.add_edge_speeds(graph)
+    graph = ox.add_edge_travel_times(graph)
+    return graph
