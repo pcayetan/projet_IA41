@@ -1,15 +1,15 @@
 
 import networkx as nx
 
-def christofides(G, test="weight"):
+def christofides(G, weight="weight"):
 
-    tree = nx.minimum_spanning_tree(G, weight=test) 
+    tree = nx.minimum_spanning_tree(G, weight=weight) 
     L = G.copy()
     L.remove_nodes_from([end_node for end_node, degree in tree.degree if not (degree % 2)])
 
     graph = nx.MultiGraph()
     graph.add_edges_from(tree.edges)
-    edges = nx.min_weight_matching(L, weight=test)
+    edges = nx.min_weight_matching(L, weight=weight)
 
     graph.add_edges_from(edges)
 

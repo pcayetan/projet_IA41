@@ -7,7 +7,7 @@ from threading import Thread
 
 #Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
 
-def construct_graph(graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony", weight="weight"):
+def construct_graph(graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony"):
     """Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
     The graph is represented as a dictionary of dictionaries. The keys are the nodes of the graph,
     and the values are dictionaries containing the time needed to travel between the node and its neighbors and 
@@ -20,8 +20,6 @@ def construct_graph(graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony
     Returns:
     dict: the graph representation
     """
-
-    
     #Select the algorithm to use
     if algorithm1 == "Dijkstra":
         print("Dijkstra")
@@ -32,55 +30,29 @@ def construct_graph(graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony
     else:
         raise ValueError("Unknown algorithm")
 
-
-
     #Create a graph with only the nodes to visit
-    if(algorithm2 == "ant_colony"):
-        G = {node: {} for node in nodes}
-    elif(algorithm2 == "christofides"):
-        G = nx.Graph()
-        dic_path = {node: {} for node in nodes}
-        for start_node in nodes:
-            for end_node in nodes:
-                if start_node == end_node:
-                    continue
-                time, path = function(graph, start_node, end_node)
-                
-    else:
-        raise ValueError("Unknown algorithm")
-        
+    dic = {node: {} for node in nodes}   
+    G = nx.Graph()
     threads = []
     for start_node in nodes:
-            for end_node in nodes:
-                if start_node == end_node:
-                   continue
-
-  
+        for end_node in nodes:
+            if start_node == end_node:
+                continue
             #Create a thread for each pair of nodes
             thread = function_thread(graph, start_node, end_node, function)
             thread.start()
             threads.append(thread)
 
-
-
     for thread in threads:
         thread.join()
-        
-        
         time, path = thread.time, thread.path
-        if(algorithm2 == "ant_colony"):
-            if(time != float("inf")):
-                #Add the path to the graph
-                G[path[0]][path[-1]] = {"time": time, "path": path}
-        elif(algorithm2 == "christofides"):
-            dic_path[path[0]][path[-1]] = path
-            G.add_edge(path[0], path[-1], weight=time)
-        else:
-            raise ValueError("Unknown algorithm")
-                    
-    if(algorithm2 == "christofides"):
-        G = (G,dic_path)
-    return G
+        if(time != float("inf")):
+            #Add the path to the graph
+            dic[path[0]][path[-1]] = {"time": time, "path": path}
+            if(algorithm2 == "christofides"): #Check can be optimized
+                G.add_edge(path[0], path[-1], weight=time)
+    thread.join()
+    return dic, G
 
 class function_thread(Thread):
     def __init__(self, graph, start_node, end_node, algorithm):

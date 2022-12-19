@@ -14,32 +14,26 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides")
     Returns:
         The path to visit the nodes in the order given by the algorithm2
     """
-    nodes = []
-
-    start = timestamp.time()
-    graph = input_generator.graph_from_coordinates_array(nodesgeocode)
-    
     if(algorithm2=="Christofides"):
         algorithm2 = "christofides"
     elif(algorithm2=="Ant Algorithm"):
         algorithm2 = "ant_colony"
     else:
         raise ValueError("Unknown 2nd algorithm")
-    
-    
 
+    start = timestamp.time()
+    graph = input_generator.graph_from_coordinates_array(nodesgeocode)
+    nodes = []
     for latitude, longitude in nodesgeocode:
         nodes.append(ox.nearest_nodes(graph, float(longitude), float(latitude)))
     end = timestamp.time()
     print("Time to create the graph: ", end - start)
     
-    
-    
     #Mesure the time to run the first algorithm
     start = timestamp.time()
     #Create a graph with only the nodes to visit with the algorithm1
     print(algorithm2)
-    simplified_graph = ConstructGraph.construct_graph(graph, nodes, algorithm1, algorithm2)
+    dictionnary, simplified_graph = ConstructGraph.construct_graph(graph, nodes, algorithm1, algorithm2)
     end = timestamp.time()
     print("Time to simplify the graph: ", end - start)
 
@@ -47,39 +41,31 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides")
     start = timestamp.time()
     #If there is only two nodes, return the path between them
     if len(nodesgeocode) == 2:
-
-        if algorithm2 == "christofides":
-            path = simplified_graph[1][0][1]
-            time = None
-        else:
-            path = simplified_graph[nodes[0]][nodes[1]]["path"]
-            time = simplified_graph[nodes[0]][nodes[1]]["time"]
+        path = dictionnary[nodes[0]][nodes[1]]["path"]
+        time = dictionnary[nodes[0]][nodes[1]]["time"]
         end = timestamp.time()
         print("Time to find the path: ", end - start)
-        return graph, path
+        return graph, path, time, [nodesgeocode[0],nodesgeocode[1]]
     
     if(algorithm2 == "ant_colony"):
         print("ant_colony")
         #Solve the TSP problem with the algorithm2
-        colony = ant_colony.ant_colony(simplified_graph, nodes[0],n_ants=25)
+        colony = ant_colony.ant_colony(dictionnary, nodes[0],n_ants=25)
         simplified_path, time = colony.run()
         #Find the path in the original graph
-        path = [nodes[0]]
-        for i in range(len(simplified_path)-1):
-            path += simplified_graph[simplified_path[i]][simplified_path[i+1]]["path"][1:]
-
-        #sort the geocode in the same order as the path
-        nodesgeocode = [nodesgeocode[nodes.index(node)] for node in simplified_path]
     elif algorithm2 == "christofides":
         print("christofides")
-        dic_path = simplified_graph[1]
-        simplified_graph = simplified_graph[0]
-        undirected_path = christofides.christofides(simplified_graph, test="weight")
-        path = []
-        for start_node, end_node in pairwise(undirected_path):
-            path.extend(dic_path[start_node][end_node][:-1])
-        path.append(end_node)
-        nodesgeocode = None
+        simplified_path = christofides.christofides(simplified_graph, weight="weight")
+        time = 0
+        for i in range(len(simplified_path)-1):
+            time +=  dictionnary[simplified_path[i]][simplified_path[i+1]]["time"]
+    
+    #Recreate path
+    path = [nodes[0]]
+    for i in range(len(simplified_path)-1):
+        path += dictionnary[simplified_path[i]][simplified_path[i+1]]["path"][1:]
+    #sort the geocode in the same order as the path
+    nodesgeocode = [nodesgeocode[nodes.index(node)] for node in simplified_path]
     end = timestamp.time()
     print("Time to solve the TSP problem: ", end - start)
 

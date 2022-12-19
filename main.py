@@ -128,7 +128,7 @@ class Form(QWidget):
         # Get the input from the fields
 
         input_list = self.print_inputs()
-        #Line used to debug quickly
+        
         geocode_list = []
         for input in input_list:
             try:
@@ -146,10 +146,11 @@ class Form(QWidget):
             print("The time to travel the route is: ", time, " seconds")
 
         except:
-            return "No route found between the given locations. Please select two different locations"
+            print("No route found between the given locations. Please select two different locations")
+            return
+        
         # Plot the route on a map and save it as an HTML file
         route_map = ox.plot_route_folium(graph, route, tiles='openstreetmap', route_color="red" , route_width=10)
-        #route_map.save('route.html')
 
         # Create a Marker object for the start location
         start_latlng = (float(geocode_list[0][1]), float(geocode_list[0][0]))
