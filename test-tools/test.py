@@ -1,74 +1,89 @@
-import math
+import sys
+import os
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QSizePolicy
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtCore import QUrl
 import osmnx as ox
+import networkx as nx
+import math
+from folium import Marker, Icon
+import matplotlib.pyplot as plt
+import input_generator
+import christofides
+from networkx.utils import pairwise
+import time as timestamp
 
 ox.settings.log_console = True
 ox.settings.use_cache = True
 
-def get_midpoint(lat1, lon1, lat2, lon2):
-    """Return the midpoint between two lat/long coordinates.
-    """
-    lat1_radians = math.radians(lat1)
-    lon1_radians = math.radians(lon1)
-    lat2_radians = math.radians(lat2)
-    lon2_radians = math.radians(lon2)
 
-    bx = math.cos(lat2_radians) * math.cos(lon2_radians - lon1_radians)
-    by = math.cos(lat2_radians) * math.sin(lon2_radians - lon1_radians)
-    lat_midpoint = math.atan2(math.sin(lat1_radians) + math.sin(lat2_radians), math.sqrt((math.cos(lat1_radians) + bx) ** 2 + by ** 2))
-    lon_midpoint = lon1_radians + math.atan2(by, math.cos(lat1_radians) + bx)
-
-    return math.degrees(lat_midpoint), math.degrees(lon_midpoint)
-
-def get_distance(lat1, lon1, lat2, lon2):
-    """Return the distance between two lat/long coordinates.
-    """
-    lat1_radians = math.radians(lat1)
-    lon1_radians = math.radians(lon1)
-    lat2_radians = math.radians(lat2)
-    lon2_radians = math.radians(lon2)
-
-    dlon = lon2_radians - lon1_radians
-    dlat = lat2_radians - lat1_radians
-    a = (math.sin(dlat / 2) ** 2) + math.cos(lat1_radians) * math.cos(lat2_radians) * (math.sin(dlon / 2) ** 2)
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    distance = 6371000 * c
-
-    return distance
 
 def main():
-    lat1 = 37.73004866666667
-    lon1 = -122.39446533333333
-    lat2 = 37.779444028651405
-    lon2 = -122.42601701484655
-
-    midpoint = get_midpoint(lat1, lon1, lat2, lon2)
-    distance = get_distance(lat1, lon1, lat2, lon2)
-
-    print("Midpoint:", midpoint)
-    print("Distance:", distance, "meters")
-
-    # Create a graph from the OpenStreetMap data
-    graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive')
-    #graph = ox.graph_from_place('San Francisco, California, United States', simplify=True, network_type='drive')
-    # impute speed on all edges missing data
-    graph = ox.add_edge_speeds(graph)
-    # calculate travel time (seconds) for all edges
-    graph = ox.add_edge_travel_times(graph)
-
-    # find the nearest node to the start location
-    origin = ox.nearest_nodes(graph, lat1, lon1)
-    # find the nearest node to the end location
-    destination = ox.nearest_nodes(graph, lat2, lon2)
-
-    # find the shortest path between origin and destination
-    shortest_path  = ox.shortest_path(graph, origin, destination, weight='travel_time')
-
-    route = shortest_path
-
-    # plot the route
-    fig = ox.plot_graph_route(graph, route, node_size=0)
-
-    fig.show()
+    input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans']#,'Bessoncourt','Denney','Valdoie']
+    geocode_list = []
     
+    geocode_to_place = {}
+    for input in input_list:
+        try:
+            geocode = ox.geocode(input)
+            geocode_list.append(geocode)
+            geocode_to_place[geocode] = input
+        except:
+            print("Please enter a valid location")
+            return
+
+    graph = input_generator.graph_from_coordinates_array(geocode_list)
+    graph_strongly_connected = ox.utils_graph.get_largest_component(graph, strongly=True)
+    undirected_graph = ox.get_undirected(graph_strongly_connected)
+    nodes = []
+    undirected_nodes = []
+    node_to_place = {}
+    for latitude, longitude in geocode_list:
+        n = ox.nearest_nodes(undirected_graph, float(longitude), float(latitude))
+        undirected_nodes.append(n)
+        node_to_place[n] = geocode_to_place[(latitude, longitude)]
+    
+    
+    print("Calculating path in undirected graph")
+    start = timestamp.time()
+    # Gives the path between the main nodes in the undirectedly connected, undirected graph
+    simplified_graph = christofides.traveling_salesman_problem(undirected_graph, "distance", undirected_nodes)
+    end = timestamp.time()
+    print("Calculated path in undirected graph. Time: ", end - start)
+
+    undirected_path = christofides.christofides(simplified_graph, test="weight")
+    print("Calculating full path")
+    start = timestamp.time()
+    # Calculate the full path between the nodes of the normal path
+    best_path = []
+    for u, v in pairwise(undirected_path):
+        print(node_to_place[u],node_to_place[v])
+        best_path.extend(nx.algorithms.dijkstra_path(graph, u, v)[:-1])
+    best_path.append(v)
+    end = timestamp.time()
+    print("Translated. Time: ", end - start)
+    
+
+    route_map = ox.plot_route_folium(graph, best_path, tiles='openstreetmap', route_color="red" , route_width=10)
+
+    # Create a Marker object for the start location
+    start_latlng = (float(geocode_list[0][1]), float(geocode_list[0][0]))
+    start_marker = Marker(location=(start_latlng[::-1]), popup='Start Location', icon=Icon(icon='glyphicon-flag', color='green'))
+
+    # Add the start and end markers to the route_map
+    start_marker.add_to(route_map)
+
+    # Create a Marker object for each location in the route
+    for i in range(1, len(geocode_list)):
+        latlng = (float(geocode_list[i][1]), float(geocode_list[i][0]))
+        marker = Marker(location=(latlng[::-1]), popup='Location', icon=Icon(icon='glyphicon-flag', color='blue'))
+        marker.add_to(route_map)
+
+
+    # Save the HTML file
+    route_map.save('route.html')
+    print("FINISHED")
+    exit(1)
+
 if __name__ == '__main__':
     main()
