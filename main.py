@@ -1,18 +1,23 @@
 import sys
 import os
+import math
+
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QSizePolicy
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
+from folium import Marker, Icon
+from folium.features import DivIcon
+import matplotlib.pyplot as plt
 import osmnx as ox
+
 import algorithms.dijkstra as dijkstra
 import algorithms.astar as astar
 import algorithms.ant_colony as ant_colony
-import math
-from folium import Marker, Icon
-import matplotlib.pyplot as plt
 from graph_tools import TSP_solver
-from folium.features import DivIcon
-    
+
+
+
+
 
 class MainClass:
     # Define class attributes
@@ -59,42 +64,6 @@ class MainClass:
         distance = 6371000 * c
 
         return distance
-
-    def findShortestRoute(self, start_latlng, end_latlng, algorithm):
-        # Create the graph from OSM within the boundaries of some
-        # geocodable place(s)
-        lat1 = start_latlng[1]
-        lon1 = start_latlng[0]
-        lat2 = end_latlng[1]
-        lon2 = end_latlng[0]
-
-        midpoint = MainClass.get_midpoint(lat1, lon1, lat2, lon2)
-        distance = MainClass.get_distance(lat1, lon1, lat2, lon2)
-
-        print("Midpoint:", midpoint)
-        print("Distance:", distance, "meters")
-
-        # Create a graph from the OpenStreetMap data
-        graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive', simplify=False)
-        #graph = ox.graph_from_place(self.place, simplify=True, network_type=self.mode)
-
-
-        # impute speed on all edges missing data
-        graph = ox.add_edge_speeds(graph)
-        # calculate travel time (seconds) for all edges
-        graph = ox.add_edge_travel_times(graph)
-        # find the nearest node to the start location
-        origin = ox.nearest_nodes(graph, *start_latlng)
-        # find the nearest node to the end location
-        destination = ox.nearest_nodes(graph, *end_latlng)
-        # find the shortest path between origin and destination
-        if algorithm == "A*":
-            distance, route = astar.astar(graph, origin, destination)
-        elif algorithm == "Dijkstra":
-            distance, route = dijkstra.dijkstra(graph, origin, destination)
-        #distance, route = dijkstra.dijkstra(graph, origin, destination)
-        # return the route
-        return graph, distance, route
 
 class Form(QWidget):
     def __init__(self):
@@ -191,7 +160,7 @@ class Form(QWidget):
 
         input_list = self.print_inputs()
         #Line used to debug quickly
-        #input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
+        input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
         geocode_list = []
         
         for input in input_list:
@@ -210,9 +179,8 @@ class Form(QWidget):
             print("The time to travel the route is: ", time, " seconds")
         except:
             return "No route found between the given locations. Please select two different locations"
-        # Plot the route on a map and save it as an HTML file
+        # Plot the route on a map
         route_map = ox.plot_route_folium(graph, route, tiles='openstreetmap', route_color="red" , route_width=10)
-        #route_map.save('route.html')
 
         # Create a Marker object for the start location
         start_latlng = (float(geocode_list[0][1]), float(geocode_list[0][0]))

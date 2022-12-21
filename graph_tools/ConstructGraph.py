@@ -42,8 +42,6 @@ def construct_graph(graph, nodes, algorithm = "dijkstra"):
             thread.start()
             threads.append(thread)
 
-
-
     for thread in threads:
         thread.join()
 

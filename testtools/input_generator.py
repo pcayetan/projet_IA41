@@ -4,7 +4,7 @@ import random, re
 import osmnx as ox
 
 def open_communes():
-    communes_df = pd.read_csv('test-tools/dataset/communes-departement-region.csv')
+    communes_df = pd.read_csv('testtools/dataset/communes-departement-region.csv')
     communes_df = communes_df[['latitude', 'longitude', 'nom_commune','nom_departement', 'nom_region']]
     return communes_df
 

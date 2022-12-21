@@ -16,19 +16,33 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     """
     nodes = []
 
-    minlat = min([float(latitude) for latitude, longitude in nodesgeocode])
-    maxlat = max([float(latitude) for latitude, longitude in nodesgeocode])
-    minlon = min([float(longitude) for latitude, longitude in nodesgeocode])
-    maxlon = max([float(longitude) for latitude, longitude in nodesgeocode])
+    minlat = min([float(latitude) for latitude, _ in nodesgeocode])
+    maxlat = max([float(latitude) for latitude, _ in nodesgeocode])
+    minlon = min([float(longitude) for _, longitude in nodesgeocode])
+    maxlon = max([float(longitude) for _, longitude in nodesgeocode])
 
     print(minlat, maxlat, minlon, maxlon)
 
     #Padding to get a bigger area
-    padding = 0.01
+    padding = 0.05 * (maxlat - minlat)
     minlat -= padding
     maxlat += padding
+    padding = 0.05 * (maxlon - minlon)
     minlon -= padding
     maxlon += padding
+
+    #if the area is to linear, add padding to the other axis. This is to avoid the problem of the graph being a line
+    if maxlat - minlat < 0.5 * (maxlon - minlon):
+        padding = 0.5 * (maxlon - minlon) - (maxlat - minlat)
+        minlat -= padding / 2
+        maxlat += padding / 2
+    elif maxlon - minlon < 0.5 * (maxlat - minlat):
+        padding = 0.5 * (maxlat - minlat) - (maxlon - minlon)
+        minlon -= padding / 2
+        maxlon += padding / 2
+
+    
+    print(minlat, maxlat, minlon, maxlon)
 
     #Download the graph of the area
     graph = ox.graph_from_bbox(maxlat, minlat, maxlon, minlon, network_type='drive')
@@ -51,7 +65,7 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     #If there is only two nodes, return the path between them
     if len(nodesgeocode) == 2:
         path = simplified_graph[nodes[0]][nodes[1]]["path"]
-        return graph, path, simplified_graph[nodes[0]][nodes[1]]["time"]
+        return graph, path, simplified_graph[nodes[0]][nodes[1]]["time"], nodesgeocode
 
     #Mesure the time to run the second algorithm
     start = timestamp.time()
