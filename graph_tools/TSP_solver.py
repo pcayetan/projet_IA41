@@ -2,7 +2,6 @@ from graph_tools import ConstructGraph, input_generator
 from algorithms import ant_colony, christofides, dijkstra
 import osmnx as ox
 import time as timestamp
-from itertools import pairwise
 def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides"):
     """Construct a graph with only the nodes latitude and longitude to visit with the algorithm1 and solve the TSP problem with the algorithm2
 
@@ -21,7 +20,6 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides")
     else:
         raise ValueError("Unknown 2nd algorithm")
 
-    start = timestamp.time()
     graph = input_generator.graph_from_coordinates_array(nodesgeocode)
     nodes = []
 
@@ -60,11 +58,13 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides")
     graph = ox.add_edge_speeds(graph)
     graph = ox.add_edge_travel_times(graph)
 
+    #Mesure the time to run the first algorithm
+    start = timestamp.time()
     #Find the nodes corresponding to the places
     for latitude, longitude in nodesgeocode:
         nodes.append(ox.nearest_nodes(graph, float(longitude), float(latitude)))
     end = timestamp.time()
-    print("Time to create the graph: ", end - start)
+    print("Time to create the graph with the 1st algorithm: ", end - start)
     
     #Mesure the time to run the first algorithm
     start = timestamp.time()

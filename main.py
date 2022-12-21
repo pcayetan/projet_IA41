@@ -10,10 +10,7 @@ from folium.features import DivIcon
 import matplotlib.pyplot as plt
 import osmnx as ox
 
-import algorithms.dijkstra as dijkstra
-import algorithms.astar as astar
-import algorithms.ant_colony as ant_colony
-from graph_tools import TSP_solver
+import graph_tools.TSP_solver as tsp_solver
 
 
 
@@ -149,7 +146,7 @@ class Form(QWidget):
         
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
-            graph, route, time, geocode_list = tsp_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
+            graph, route, time, geocode_list = tsp_solver.tsp_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
             print("The time to travel the route is: ", time, " seconds")
 
         except:
