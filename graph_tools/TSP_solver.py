@@ -1,9 +1,9 @@
-from graph_tools import ConstructGraph
-from algorithms import ant_colony
+from graph_tools import ConstructGraph, input_generator
+from algorithms import ant_colony, christofides, dijkstra
 import osmnx as ox
 import time as timestamp
-
-def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colony"):
+from itertools import pairwise
+def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides"):
     """Construct a graph with only the nodes latitude and longitude to visit with the algorithm1 and solve the TSP problem with the algorithm2
 
     Args:
@@ -14,6 +14,15 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     Returns:
         The path to visit the nodes in the order given by the algorithm2
     """
+    if(algorithm2=="Christofides"):
+        algorithm2 = "christofides"
+    elif(algorithm2=="Ant Algorithm"):
+        algorithm2 = "ant_colony"
+    else:
+        raise ValueError("Unknown 2nd algorithm")
+
+    start = timestamp.time()
+    graph = input_generator.graph_from_coordinates_array(nodesgeocode)
     nodes = []
 
     minlat = min([float(latitude) for latitude, _ in nodesgeocode])
@@ -54,14 +63,19 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     #Find the nodes corresponding to the places
     for latitude, longitude in nodesgeocode:
         nodes.append(ox.nearest_nodes(graph, float(longitude), float(latitude)))
-
+    end = timestamp.time()
+    print("Time to create the graph: ", end - start)
+    
     #Mesure the time to run the first algorithm
     start = timestamp.time()
     #Create a graph with only the nodes to visit with the algorithm1
-    simplified_graph = ConstructGraph.construct_graph(graph, nodes, algorithm1)
+    print(algorithm2)
+    dictionnary, simplified_graph = ConstructGraph.construct_graph(graph, nodes, algorithm1, algorithm2)
     end = timestamp.time()
-    print("Time to construct the graph: ", end - start)
+    print("Time to simplify the graph: ", end - start)
 
+    #Mesure the time to run the second algorithm
+    start = timestamp.time()
     #If there is only two nodes, return the path between them
     if len(nodesgeocode) == 2:
         path = simplified_graph[nodes[0]][nodes[1]]["path"]
@@ -72,19 +86,14 @@ def construct_graph(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="ant_colon
     #Solve the TSP problem with the algorithm2
     colony = ant_colony.ant_colony(simplified_graph, nodes[0],n_ants=25)
     
-    simplified_path, time = colony.run()
+    #Recreate path
+    path = [nodes[0]]
+    for i in range(len(simplified_path)-1):
+        path += dictionnary[simplified_path[i]][simplified_path[i+1]]["path"][1:]
+    #sort the geocode in the same order as the path
+    nodesgeocode = [nodesgeocode[nodes.index(node)] for node in simplified_path]
     end = timestamp.time()
     print("Time to solve the TSP problem: ", end - start)
 
-    #Find the path in the original graph
-    path = [nodes[0]]
-    for i in range(len(simplified_path)-1):
-        path += simplified_graph[simplified_path[i]][simplified_path[i+1]]["path"][1:]
-    
-    #sort the geocode in the same order as the path
-    nodesgeocode = [nodesgeocode[nodes.index(node)] for node in simplified_path]
-        
-
     #return the solution
     return graph, path, time, nodesgeocode
-    
