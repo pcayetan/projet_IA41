@@ -2,7 +2,6 @@ from graph_tools import ConstructGraph, input_generator
 from algorithms import ant_colony, christofides, dijkstra
 import osmnx as ox
 import time as timestamp
-from itertools import pairwise
 def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides"):
     """Construct a graph with only the nodes latitude and longitude to visit with the algorithm1 and solve the TSP problem with the algorithm2
 
@@ -21,13 +20,51 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides")
     else:
         raise ValueError("Unknown 2nd algorithm")
 
-    start = timestamp.time()
     graph = input_generator.graph_from_coordinates_array(nodesgeocode)
     nodes = []
+
+    minlat = min([float(latitude) for latitude, _ in nodesgeocode])
+    maxlat = max([float(latitude) for latitude, _ in nodesgeocode])
+    minlon = min([float(longitude) for _, longitude in nodesgeocode])
+    maxlon = max([float(longitude) for _, longitude in nodesgeocode])
+
+    print(minlat, maxlat, minlon, maxlon)
+
+    #Padding to get a bigger area
+    padding = 0.05 * (maxlat - minlat)
+    minlat -= padding
+    maxlat += padding
+    padding = 0.05 * (maxlon - minlon)
+    minlon -= padding
+    maxlon += padding
+
+    #if the area is to linear, add padding to the other axis. This is to avoid the problem of the graph being a line
+    if maxlat - minlat < 0.5 * (maxlon - minlon):
+        padding = 0.5 * (maxlon - minlon) - (maxlat - minlat)
+        minlat -= padding / 2
+        maxlat += padding / 2
+    elif maxlon - minlon < 0.5 * (maxlat - minlat):
+        padding = 0.5 * (maxlat - minlat) - (maxlon - minlon)
+        minlon -= padding / 2
+        maxlon += padding / 2
+
+    
+    print(minlat, maxlat, minlon, maxlon)
+
+    #Download the graph of the area
+    graph = ox.graph_from_bbox(maxlat, minlat, maxlon, minlon, network_type='drive')
+
+    #add travel times to nodes
+    graph = ox.add_edge_speeds(graph)
+    graph = ox.add_edge_travel_times(graph)
+
+    #Mesure the time to run the first algorithm
+    start = timestamp.time()
+    #Find the nodes corresponding to the places
     for latitude, longitude in nodesgeocode:
         nodes.append(ox.nearest_nodes(graph, float(longitude), float(latitude)))
     end = timestamp.time()
-    print("Time to create the graph: ", end - start)
+    print("Time to create the graph with the 1st algorithm: ", end - start)
     
     #Mesure the time to run the first algorithm
     start = timestamp.time()
@@ -41,24 +78,13 @@ def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides")
     start = timestamp.time()
     #If there is only two nodes, return the path between them
     if len(nodesgeocode) == 2:
-        path = dictionnary[nodes[0]][nodes[1]]["path"]
-        time = dictionnary[nodes[0]][nodes[1]]["time"]
-        end = timestamp.time()
-        print("Time to find the path: ", end - start)
-        return graph, path, time, [nodesgeocode[0],nodesgeocode[1]]
-    
-    if(algorithm2 == "ant_colony"):
-        print("ant_colony")
-        #Solve the TSP problem with the algorithm2
-        colony = ant_colony.ant_colony(dictionnary, nodes[0],n_ants=25)
-        simplified_path, time = colony.run()
-        #Find the path in the original graph
-    elif algorithm2 == "christofides":
-        print("christofides")
-        simplified_path = christofides.christofides(simplified_graph, weight="weight")
-        time = 0
-        for i in range(len(simplified_path)-1):
-            time +=  dictionnary[simplified_path[i]][simplified_path[i+1]]["time"]
+        path = simplified_graph[nodes[0]][nodes[1]]["path"]
+        return graph, path, simplified_graph[nodes[0]][nodes[1]]["time"], nodesgeocode
+
+    #Mesure the time to run the second algorithm
+    start = timestamp.time()
+    #Solve the TSP problem with the algorithm2
+    colony = ant_colony.ant_colony(simplified_graph, nodes[0],n_ants=25)
     
     #Recreate path
     path = [nodes[0]]

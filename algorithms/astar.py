@@ -55,8 +55,8 @@ def astar(Graph, source, target):
     to_explore = [[],[]] # heap of (distance, heuristic, label) tuples for all non-seen nodes
 
     #Initialize the heap with the source and target
-    push(to_explore[0], (0, heuristic(source, target), source))
-    push(to_explore[1], (0, heuristic(target, source), target))
+    push(to_explore[0], (heuristic(source, target), 0,  source))
+    push(to_explore[1], (heuristic(target, source), 0,  target))
     
     #Initialize the path with the source and target
     path[0][source] = [source]

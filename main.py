@@ -1,14 +1,17 @@
-import sys, os
+import sys
+import os
+import math
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QSizePolicy
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
-
-import osmnx as ox
 from folium import Marker, Icon
 from folium.features import DivIcon
+import matplotlib.pyplot as plt
+import osmnx as ox
 
-from graph_tools.TSP_solver import tsp_solver
+import graph_tools.TSP_solver as tsp_solver
+
 
 
 
@@ -128,7 +131,8 @@ class Form(QWidget):
         # Get the input from the fields
 
         input_list = self.print_inputs()
-        
+        #Line used to debug quickly
+        input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
         geocode_list = []
         for input in input_list:
             try:
@@ -142,7 +146,7 @@ class Form(QWidget):
         
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
-            graph, route, time, geocode_list = tsp_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
+            graph, route, time, geocode_list = tsp_solver.tsp_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
             print("The time to travel the route is: ", time, " seconds")
 
         except:
