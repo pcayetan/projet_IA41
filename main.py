@@ -113,6 +113,11 @@ class Form(QWidget):
         self.algorithmComboBox.addItem("A*")
         self.algorithmComboBox.addItem("Dijkstra")
         
+        self.algorithmComboBox2 = QComboBox()
+        self.algorithmComboBox2.addItem("Ant Algorithm")
+        self.algorithmComboBox2.addItem("Christofides")
+        self.algorithmComboBox2.addItem("Pairwise exchange")
+
         # Create the button and connect it to the handleButtonClick() method
         self.button = QPushButton("Submit")
         self.button.clicked.connect(self.handleButtonClick)
@@ -189,7 +194,7 @@ class Form(QWidget):
 
         input_list = self.print_inputs()
         #Line used to debug quickly
-        #input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
+        # input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
         geocode_list = []
         
         for input in input_list:

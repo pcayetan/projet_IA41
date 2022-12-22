@@ -1,5 +1,9 @@
-from algorithms import dijkstra
-from algorithms import astar
+from algorithms import dijkstra, astar, pairwise_exchange
+
+import networkx as nx
+
+from threading import Thread
+
 #Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
 
 def construct_graph(graph, nodes, algorithm = "dijkstra"):
