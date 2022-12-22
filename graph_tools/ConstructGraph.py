@@ -1,5 +1,4 @@
-from algorithms import dijkstra
-from algorithms import astar
+from algorithms import dijkstra, astar, pairwise_exchange
 
 import networkx as nx
 
