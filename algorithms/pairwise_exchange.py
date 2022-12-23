@@ -120,12 +120,15 @@ def exchange_nodes(star_graph: nx.DiGraph, ring_graph: nx.DiGraph, recursion: in
     return ring_graph
 
 
-def reconstruct_full_path(ring_graph: nx.DiGraph):
-    path_graph = nx.DiGraph()
-    # print(ring_graph.edges.data())
-    for start, end, path in ring_graph.edges.data("path"):
-        nx.add_path(path_graph, [start, *path, end])
-    return path_graph
+def ring_graph_to_multinodes(ring_graph: nx.DiGraph, start_node):
+    multinodes = []
+    search_node = start_node
+    for i in range(len(ring_graph.nodes)):
+        for adj in ring_graph.adj[search_node]:
+            multinodes.append(adj)
+        
+        search_node = adj
+    return multinodes
     
     
 
@@ -134,15 +137,10 @@ def pairwise_exchange(graph, multinodes: list[nx.nodes], recursion) -> nx.graph:
     ring_graph = starGraph_to_ringGraph(star_graph)
     
     ring_graph = exchange_nodes(star_graph, ring_graph, recursion)
-    weight = star_graph.size(weight="weight")
-    
-    # add paths to ring graph
-    for edge in ring_graph.edges:
-        ring_graph[edge[0]][edge[1]]["path"] = star_graph[edge[0]][edge[1]]["path"]
 
-    full_path = reconstruct_full_path(ring_graph)
+    multinodes = ring_graph_to_multinodes(ring_graph, start_node=multinodes[0])
     
-    return full_path
+    return multinodes
 
 
 if __name__=="__main__":
@@ -159,7 +157,6 @@ if __name__=="__main__":
     # node_list = [ox.nearest_nodes(graph, *geocode[::-1]) for geocode in geocode_list]
     # node_list = [321842925, 340177948, 1625586214]
 
-    full_path: nx.DiGraph = pairwise_exchange(graph, node_list, 4)
+    multinodes = pairwise_exchange(graph, node_list, 4)
 
-    print(full_path.number_of_nodes())
-    print(full_path.number_of_edges())
+    print(multinodes)
