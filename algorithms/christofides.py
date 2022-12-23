@@ -2,10 +2,21 @@ from heapq import heappop, heappush
 from networkx import MultiGraph, Graph, max_weight_matching
 from itertools import count
 from copy import deepcopy
-import networkx as nx
 
-def christofides(dictionnary, weight="time"):
-    D = deepcopy(dictionnary)
+    
+def christofides(dictionary, weight="time"):
+    """Compute an approximation of the shortest path between all the nodes of the dictionary
+    Uses Christofides Algorithm to solve the traveling's salesman problem (TSP).
+    
+    Parameters:
+    ---------------
+    dictionary: python dictionary, complete graph
+    weight: weight used in the dictionary
+    
+    Returns:
+    an approximation of the shortest path between the dictionary's nodes
+    """
+    D = deepcopy(dictionary)
     for start_node in D:
         for end_node in D[start_node]:
             if start_node == end_node:
@@ -23,17 +34,28 @@ def christofides(dictionnary, weight="time"):
     return path
 
 
-def prim_graph(D, weight="time"):
+def prim_graph(G, weight="time"):
+    """Compute a the edges of a minimim spanning tree (mst) for a graph
+    Uses Prim's algorithm
+
+    Parameters:
+    ---------------
+    G: nx.Graph 
+    weight: weight used in the graph
+    
+    Returns:
+    An iterator containing the edges of the mst
+    """
     push = heappush
     pop = heappop
-    nodes = set(D)
+    nodes = set(G)
     c = count()
     while nodes:
         u = nodes.pop()
         frontier = []
         visited = {u}
         
-        for v, d in D.adj[u].items():
+        for v, d in G.adj[u].items():
             wt = d.get(weight, 1)
             push(frontier, (wt, next(c), u, v, d))
         while nodes and frontier:
@@ -44,21 +66,44 @@ def prim_graph(D, weight="time"):
             # update frontier
             visited.add(v)
             nodes.discard(v)
-            for w, d2 in D.adj[v].items():
+            for w, d2 in G.adj[v].items():
                 if w in visited:
                     continue
                 new_weight = d2.get(weight, 1)
                 push(frontier, (new_weight, next(c), v, w, d2))
 
-
-def minimum_spanning_tree(graph, weight="time"):
-    edges_mst_prim_graph = prim_graph(graph, weight=weight)
+    
+def minimum_spanning_tree(G, weight="time"):
+    """Compute a the edges of a minimim spanning tree (mst) for a graph
+    Compute the minimum spanning tree for a graph using Prim's algorithm
+    
+    Parameters:
+    ---------------
+        G: nx.Graph 
+        weight: weight used in the graph
+    
+    Returns:
+        T_graph: nx.Graph containing the minimum spanning tree of G
+    """
+    edges_mst_prim_graph = prim_graph(G, weight=weight)
     T_graph = Graph()  # Same graph class as Gs
-    T_graph.add_nodes_from(graph.nodes.items())
+    T_graph.add_nodes_from(G.nodes.items())
     T_graph.add_edges_from(edges_mst_prim_graph)
     return T_graph
 
+    
 def min_weight_matching(G, weight="time"):
+    """Compute a minimally weighted matching of G
+    Uses networkx's function max_weight_matching, 
+    only the inversion to get the min is done here.
+    Parameters:
+    ---------------
+        G: nx.Graph 
+        weight: weight used in the graph
+    
+    Returns:
+        A minimally weighted matching of G
+    """
     G_edges = G.edges(data=weight, default=1)
     max_weight = 1 + max(w for _, _, w in G_edges)
     InvG = Graph()
@@ -68,6 +113,14 @@ def min_weight_matching(G, weight="time"):
     
     
 def shortcutting(path):
+    """Removes the nodes through which the path comes through twice
+    Parameters:
+    ---------------
+        path: list 
+    
+    Returns:
+        nodes: list
+    """
     nodes = []
     for start_node, end_node in path:
         if end_node in nodes:
@@ -79,6 +132,13 @@ def shortcutting(path):
     return nodes
     
 def eulerian_circuit(G):
+    """Create an eulerian circuit for graph G
+    ---------------
+        G: nx.Graph 
+    
+    Yield:
+        vertex of the eulerian circuit
+    """
     G = G.copy()
     source = next(iter(G))
     degree = G.degree

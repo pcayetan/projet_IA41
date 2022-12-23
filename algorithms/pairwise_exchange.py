@@ -28,23 +28,23 @@ def starGraph_to_ringGraph(star_graph: nx.DiGraph) -> nx.DiGraph:
     start_node = list(star_graph.nodes)[0]
     
     # get nearest node
-    nearest_node, properties = min(star_graph[start_node].items(), key=lambda edge: edge[1]["weight"])
+    nearest_node, properties = min(star_graph[start_node].items(), key=lambda edge: edge[1]["time"])
     
     # add weight and node
-    ring_graph.add_edge(start_node, nearest_node, weight = properties["weight"])
+    ring_graph.add_edge(start_node, nearest_node, weight = properties["time"])
     
     search_node = nearest_node
     
     while not all(node in ring_graph for node in star_graph.nodes):
         # get a sorted list of the nearest node
-        sorted_nearest_nodes = sorted(star_graph[search_node].items(), key=lambda edge: edge[1]["weight"])
+        sorted_nearest_nodes = sorted(star_graph[search_node].items(), key=lambda edge: edge[1]["time"])
         for nearest_node, properties in sorted_nearest_nodes:
             if nearest_node not in ring_graph:
-                ring_graph.add_edge(search_node, nearest_node, weight = properties["weight"])
+                ring_graph.add_edge(search_node, nearest_node, weight = properties["time"])
                 search_node = nearest_node
                 break
     
-    ring_graph.add_edge(search_node, start_node, weight=star_graph[start_node][nearest_node]["weight"])
+    ring_graph.add_edge(search_node, start_node, weight=star_graph[start_node][nearest_node]["time"])
 
     return ring_graph
 
@@ -58,14 +58,14 @@ def exchange_nodes(star_graph: nx.DiGraph, ring_graph: nx.DiGraph, recursion: in
     
     #get a random edge and convert to list
     switch_edge1 = list(edges.pop(edges.index(choice(edges))))
-    switch_edge1.append(star_graph.get_edge_data(*switch_edge1, "weight"))
+    switch_edge1.append(star_graph.get_edge_data(*switch_edge1, "time"))
     
     # remove neighbor edges of the nodes in switch_edge1
     edges = [edge for edge in edges if not(switch_edge1[0] in edge or switch_edge1[1] in edge)]
 
     #get a random edge and convert to list
     switch_edge2 = list(edges.pop(edges.index(choice(edges))))
-    switch_edge2.append(star_graph.get_edge_data(*switch_edge2, "weight"))
+    switch_edge2.append(star_graph.get_edge_data(*switch_edge2, "time"))
     ring_graph.remove_edges_from([switch_edge1, switch_edge2])
     
     # swap edges
@@ -98,14 +98,14 @@ def exchange_nodes(star_graph: nx.DiGraph, ring_graph: nx.DiGraph, recursion: in
             graph_reversed = path_graph_A
     
     # update weights of reversed path
-    weighted_edges = [(*edge, star_graph[edge[0]][edge[1]]["weight"]) for edge in graph_reversed.edges]
+    weighted_edges = [(*edge, star_graph[edge[0]][edge[1]]["time"]) for edge in graph_reversed.edges]
     graph_reversed.add_weighted_edges_from(weighted_edges)
     
     # reconstruct graph
     ring_graph = nx.union(path_graph_A, path_graph_B)
     ring_graph.add_edges_from([switch_edge1, switch_edge2])
     
-    print(f"recursion: {recursion} size: ", ring_graph.size(weight="weight"))
+    print(f"recursion: {recursion} size: ", ring_graph.size(weight="time"))
     
     # return swapped graph
     if recursion == 1:
@@ -114,32 +114,31 @@ def exchange_nodes(star_graph: nx.DiGraph, ring_graph: nx.DiGraph, recursion: in
     new_ring_graph = exchange_nodes(star_graph, ring_graph.copy(), recursion - 1)
 
     # return the smallest weighted paths
-    if new_ring_graph.size(weight="weight") < ring_graph.size(weight="weight"):
+    if new_ring_graph.size(weight="time") < ring_graph.size(weight="time"):
         return new_ring_graph
     
     return ring_graph
 
 
 def ring_graph_to_multinodes(ring_graph: nx.DiGraph, start_node):
-    multinodes = []
+    multinodes = [start_node]
     search_node = start_node
     for i in range(len(ring_graph.nodes)):
         for adj in ring_graph.adj[search_node]:
             multinodes.append(adj)
-        
         search_node = adj
     return multinodes
     
     
 
-def pairwise_exchange(graph, multinodes: list[nx.nodes], recursion) -> nx.graph:
-    star_graph = multiNodes_to_starGraph(graph, multinodes)
+def pairwise_exchange(dictionnary, multinodes: list[nx.nodes], recursion) -> nx.graph:
+    star_graph = nx.DiGraph(dictionnary)
     ring_graph = starGraph_to_ringGraph(star_graph)
     
     ring_graph = exchange_nodes(star_graph, ring_graph, recursion)
 
     multinodes = ring_graph_to_multinodes(ring_graph, start_node=multinodes[0])
-    
+    print(multinodes)
     return multinodes
 
 if __name__=="__main__":

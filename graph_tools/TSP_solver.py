@@ -45,7 +45,7 @@ def tsp_solver(graph, nodes, dictionnary, algorithm_name="Christofides"):
     elif algorithm == "christofides":
         simplified_path = christofides.christofides(dictionnary)
     if algorithm == "pairwise_exchange":
-        simplified_path = pairwise_exchange.pairwise_exchange(graph, nodes, len(nodes))
+        simplified_path = pairwise_exchange.pairwise_exchange(dictionnary, nodes, len(nodes))
     end = timestamp.time()
     print("Time to solve the TSP problem: ", end - start)
     return simplified_path
