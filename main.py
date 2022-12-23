@@ -57,15 +57,15 @@ class Form(QWidget):
         self.button1.clicked.connect(self.add_input)
 
         # Create the layout and add the widgets to it
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.input1)
-        self.layout.addWidget(self.input2)
-        self.layout.addWidget(self.button1)
-        self.layout.addWidget(self.algorithmComboBox1)
-        self.layout.addWidget(self.algorithmComboBox2)
-        self.layout.addWidget(self.button)
-        self.layout.addWidget(self.preview)
-        self.setLayout(self.layout)
+        layout = QVBoxLayout()
+        layout.addWidget(self.input1)
+        layout.addWidget(self.input2)
+        layout.addWidget(self.button1)
+        layout.addWidget(self.algorithmComboBox1)
+        layout.addWidget(self.algorithmComboBox2)
+        layout.addWidget(self.button)
+        layout.addWidget(self.preview)
+        self.setLayout(layout)
         
     def add_input(self):
         # Create a new QLineEdit widget
