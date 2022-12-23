@@ -3,7 +3,7 @@ import osmnx as ox
 from itertools import permutations, combinations
 from random import choice
 
-import dijkstra
+from algorithms import dijkstra
 
 
 def multiNodes_to_starGraph(graph: nx.MultiDiGraph, multi_nodes: list[nx.nodes], algo=dijkstra.dijkstra) -> nx.DiGraph:
@@ -141,7 +141,6 @@ def pairwise_exchange(graph, multinodes: list[nx.nodes], recursion) -> nx.graph:
     multinodes = ring_graph_to_multinodes(ring_graph, start_node=multinodes[0])
     
     return multinodes
-
 
 if __name__=="__main__":
     distance = 11656.196759887971

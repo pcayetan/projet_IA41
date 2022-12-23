@@ -1,36 +1,13 @@
-import sys
-import os
-import math
+import sys, os
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QSizePolicy
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 from folium import Marker, Icon
 from folium.features import DivIcon
-import matplotlib.pyplot as plt
 import osmnx as ox
 
 import graph_tools.TSP_solver as tsp_solver
-
-
-
-
-
-class MainClass:
-    # Define class attributes
-    global_var = "Hello, World!"
-    
-    def __init__(self):
-        # Set configuration settings for osmnx
-        ox.settings.log_console = True
-        ox.settings.use_cache = True
-        # location where you want to find your route
-        self.place = 'San Francisco, California, United States'
-        # find shortest route based on the mode of travel
-        self.mode = 'drive'        # 'drive', 'bike', 'walk'
-        # find shortest path based on distance or time
-        self.optimizer = 'time'        # 'length', 'time'
-        
 
 class Form(QWidget):
     def __init__(self):
@@ -65,9 +42,7 @@ class Form(QWidget):
         dirname = os.path.dirname(__file__)
         filename = os.path.join(dirname, 'route.html')
         url = QUrl.fromLocalFile(filename)
-        print(os.path.exists(filename))
         self.preview.load(url)
-
         self.inputs = []
         # Add the widget to the list of inputs
         self.inputs.append(self.input1)     
@@ -128,12 +103,17 @@ class Form(QWidget):
         # Return the list
         return inputs_list
 
+    #The function that will be called when the button is clicked
     def handleButtonClick(self):
         # Get the input from the fields
 
         input_list = self.print_inputs()
         #Line used to debug quickly
-        # input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
+<<<<<<< HEAD
+        input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
+=======
+        # input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']        
+>>>>>>> 76346b1192bcc71e66a48332e0782da4f391537e
         geocode_list = []
         for input in input_list:
             try:
@@ -142,12 +122,12 @@ class Form(QWidget):
                 print("Please enter a valid location")
                 return
         
-        # Create an instance of the MainClass
-        main_class = MainClass()
+        ox.settings.log_console = True
+        ox.settings.use_cache = True
         
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
-            graph, route, time, geocode_list = tsp_solver.tsp_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
+            graph, route, time, geocode_list = main_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
             print("The time to travel the route is: ", time, " seconds")
 
         except:
@@ -187,5 +167,6 @@ class Form(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     form = Form()
+    form.handleButtonClick()
     form.show()
     sys.exit(app.exec_())
