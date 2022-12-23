@@ -40,6 +40,8 @@ def astar(Graph, source, target):
             a = math.sin((lat2-lat1)/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin((lon2-lon1)/2)**2
             c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
             d = 6371000 * c 
+            d = d / 1000 #Convert to kilometers
+            d = d / 30 #Convert to minutes
             
             return d
 

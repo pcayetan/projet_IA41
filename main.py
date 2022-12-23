@@ -56,12 +56,6 @@ class Form(QWidget):
         # Connect the clicked signal of the button to a slot
         self.button1.clicked.connect(self.add_input)
 
-        # Create a second QPushButton widget
-        self.button2 = QPushButton("Print inputs")
-
-        # Connect the clicked signal of the button to a slot
-        self.button2.clicked.connect(self.print_inputs)
-
         # Create the layout and add the widgets to it
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.input1)
@@ -71,7 +65,6 @@ class Form(QWidget):
         self.layout.addWidget(self.algorithmComboBox2)
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.preview)
-        self.layout.addWidget(self.button2)
         self.setLayout(self.layout)
         
     def add_input(self):
@@ -87,7 +80,7 @@ class Form(QWidget):
         # Add the widget to the layout
         self.layout.addWidget(self.input)
 
-    def print_inputs(self):
+    def get_inputs(self):
         # Create an empty list to store the text entered in the inputs
         inputs_list = []
         # Use a for loop to add the text entered in each input to the list
@@ -107,31 +100,46 @@ class Form(QWidget):
     def handleButtonClick(self):
         # Get the input from the fields
 
-        input_list = self.print_inputs()
+        input_list = self.get_inputs()
         #Line used to debug quickly
-<<<<<<< HEAD
-        input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
-=======
-        # input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']        
->>>>>>> 76346b1192bcc71e66a48332e0782da4f391537e
-        geocode_list = []
-        for input in input_list:
-            try:
-                geocode_list.append(ox.geocode(input))
-            except:
-                print("Please enter a valid location")
-                return
+        #input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']        
         
         ox.settings.log_console = True
         ox.settings.use_cache = True
         
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
-            graph, route, time, geocode_list = main_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
+            graph, route, time, geocode_list = tsp_solver.main_solver(input_list, name_algorithm1=self.algorithmComboBox1.currentText(), name_algorithm2=self.algorithmComboBox2.currentText())
             print("The time to travel the route is: ", time, " seconds")
 
+        except ValueError as err:
+            #print an msgbox if the route is not possible
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText(err.args[0])
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+            return
+
+        except ConnectionError:
+            #print an msgbox if the route is not possible
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Connection error, please try again")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+            return
+
         except:
-            print("No route found between the given locations. Please select two different locations")
+            #print an msgbox if the route is not possible
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setText("Unknow error, please try again")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
             return
         
         # Plot the route on a map and save it as an HTML file
@@ -167,6 +175,5 @@ class Form(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     form = Form()
-    form.handleButtonClick()
     form.show()
     sys.exit(app.exec_())

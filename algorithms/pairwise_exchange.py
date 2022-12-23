@@ -132,7 +132,7 @@ def ring_graph_to_multinodes(ring_graph: nx.DiGraph, start_node):
     
     
 
-def pairwise_exchange(graph, multinodes: list[nx.nodes], recursion) -> nx.graph:
+def pairwise_exchange(graph, multinodes: list[nx.nodes], recursion):
     star_graph = multiNodes_to_starGraph(graph, multinodes)
     ring_graph = starGraph_to_ringGraph(star_graph)
     
@@ -141,21 +141,3 @@ def pairwise_exchange(graph, multinodes: list[nx.nodes], recursion) -> nx.graph:
     multinodes = ring_graph_to_multinodes(ring_graph, start_node=multinodes[0])
     
     return multinodes
-
-if __name__=="__main__":
-    distance = 11656.196759887971
-    midpoint = (47.63491834896677, 6.830560597944681)
-
-    # locations = ['UTBM', 'lion de belfort, belfort', 'Av. Jean Jaurès, belfort, France']
-    # coord = [(47.58821915, 6.865861151133005), (47.63665715, 6.86457499503841), (47.6565055, 6.8458507)]
-    node_list = [401460669, 321842925, 340177948, 346135377]
-
-
-    graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive', simplify=False)
-
-    # node_list = [ox.nearest_nodes(graph, *geocode[::-1]) for geocode in geocode_list]
-    # node_list = [321842925, 340177948, 1625586214]
-
-    multinodes = pairwise_exchange(graph, node_list, 4)
-
-    print(multinodes)

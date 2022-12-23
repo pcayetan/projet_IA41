@@ -41,19 +41,3 @@ def string_to_coordinates(string):
     else:
         return float_coordinates
 
-#   input: list of coordinates
-#   output: a graph in which all of the coordinates fit
-#   the graph construction fails, returns -1
-def graph_from_coordinates_array(coordinates_array, simplify=True, network_type='drive'):
-    maxlat, minlon = np.max(coordinates_array, axis=0) 
-    minlat, maxlon = np.min(coordinates_array, axis=0)
-    graph  = ox.graph_from_bbox(maxlat,minlat,maxlon,minlon, simplify=simplify, network_type=network_type, truncate_by_edge=True)
-    graph = ox.add_edge_speeds(graph)
-    graph = ox.add_edge_travel_times(graph)
-    graph = ox.utils_graph.get_largest_component(graph, strongly=True)
-
-    nodes = []
-    for latitude, longitude in coordinates_array:
-        nodes.append(ox.nearest_nodes(graph, float(longitude), float(latitude)))
-
-    return nodes, graph

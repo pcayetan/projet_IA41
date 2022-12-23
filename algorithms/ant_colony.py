@@ -1,9 +1,8 @@
 #Solve the TSP problem with the ant_colony algorithm
-from threading import Thread
 
 class ant_colony:
 
-    class ant(Thread):
+    class ant():
 
         def __init__(self, graph, start_node, alpha, beta, first_pass=False, heuristic=None):
             """Create an ant
@@ -13,7 +12,6 @@ class ant_colony:
                 start: The node where the ant starts
                 alpha: The alpha parameter of the algorithm, usually smaller than 1
                 beta: The beta parameter of the algorithm, usually bigger than 1"""
-            Thread.__init__(self)
 
             self.graph = graph
             self.start_node = start_node
@@ -185,7 +183,7 @@ class ant_colony:
         
         #Find the best ant
 
-        return best_ant.path, best_ant.distance
+        return best_ant.path
 
     def _iteration(self):
         """Run one iteration of the algorithm"""
@@ -194,13 +192,9 @@ class ant_colony:
         for i in range(self.n_ants):
             self.ants.append(self.ant(self.graph, self.start_node, self.alpha, self.beta, self.first_pass, self.heuristic))
 
-        #Start the ants, they will run in parallel
+        #Run the ants
         for ant in self.ants:
-            ant.start()
-
-        #Wait for the ants to finish
-        for ant in self.ants:
-            ant.join()
+            ant.run()
 
         #Update the pheromone
         self._update_pheromone()

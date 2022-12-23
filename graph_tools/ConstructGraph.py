@@ -1,12 +1,7 @@
-from algorithms import dijkstra, astar, pairwise_exchange
-
-import networkx as nx
-
-from threading import Thread
-
+from algorithms import dijkstra
 #Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
 
-def construct_graph(graph, nodes, algorithm= "dijkstra"):
+def construct_graph(graph, nodes, algorithm = dijkstra.dijkstra):
     """Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
     The graph is represented as a dictionary of dictionaries. The keys are the nodes of the graph,
     and the values are dictionaries containing the time needed to travel between the node and its neighbors and 
@@ -19,44 +14,23 @@ def construct_graph(graph, nodes, algorithm= "dijkstra"):
     Returns:
     dict: the graph representation
     """
-    #Select the algorithm to use
-    if algorithm == "Dijkstra":
-        function = dijkstra.dijkstra
-    elif algorithm == "A*":
-        function = astar.astar
-    else:
-        raise ValueError("Unknown algorithm")
-    print("Path finding algorithm: ", algorithm)
+
     #Create a graph with only the nodes to visit
-    dic = {node: {} for node in nodes}   
-    G = nx.Graph()
-    threads = []
+    G = {node: {} for node in nodes}
+
     for start_node in nodes:
         for end_node in nodes:
+
             if start_node == end_node:
                 continue
-            #Create a thread for each pair of nodes
-            thread = function_thread(graph, start_node, end_node, function)
-            thread.start()
-            threads.append(thread)
 
-    for thread in threads:
-        thread.join()
-        time, path = thread.time, thread.path
-        if(time != float("inf")):
-            #Add the path to the graph
-            dic[path[0]][path[-1]] = {"time": time, "path": path}
-    return dic
+            #Find the shortest path between the two nodes
+            time, path = algorithm(graph, start_node, end_node)
 
-class function_thread(Thread):
-    def __init__(self, graph, start_node, end_node, algorithm):
-        Thread.__init__(self)
-        self.graph = graph
-        self.start_node = start_node
-        self.end_node = end_node
-        self.time = None
-        self.path = None
-        self.algorithm = algorithm
+            if(time != float("inf")):
+                #Add the path to the graph
+                G[start_node][end_node] = {"time": time, "path": path}
+            
 
-    def run(self):
-        self.time, self.path = self.algorithm(self.graph, self.start_node, self.end_node)
+    return G
+    
