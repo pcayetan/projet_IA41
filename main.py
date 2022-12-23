@@ -57,15 +57,15 @@ class Form(QWidget):
         self.button1.clicked.connect(self.add_input)
 
         # Create the layout and add the widgets to it
-        layout = QVBoxLayout()
-        layout.addWidget(self.input1)
-        layout.addWidget(self.input2)
-        layout.addWidget(self.button1)
-        layout.addWidget(self.algorithmComboBox1)
-        layout.addWidget(self.algorithmComboBox2)
-        layout.addWidget(self.button)
-        layout.addWidget(self.preview)
-        self.setLayout(layout)
+        self.playout = QVBoxLayout()
+        self.playout.addWidget(self.input1)
+        self.playout.addWidget(self.input2)
+        self.playout.addWidget(self.button1)
+        self.playout.addWidget(self.algorithmComboBox1)
+        self.playout.addWidget(self.algorithmComboBox2)
+        self.playout.addWidget(self.button)
+        self.playout.addWidget(self.preview)
+        self.setLayout(self.playout)
         
     def add_input(self):
         # Create a new QLineEdit widget
@@ -78,7 +78,7 @@ class Form(QWidget):
         self.inputs.append(self.input)
 
         # Add the widget to the layout
-        self.layout.addWidget(self.input)
+        self.playout.addWidget(self.input)
 
     def get_inputs(self):
         # Create an empty list to store the text entered in the inputs
@@ -102,7 +102,7 @@ class Form(QWidget):
 
         input_list = self.get_inputs()
         #Line used to debug quickly
-        #input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']        
+        input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']        
         
         ox.settings.log_console = True
         ox.settings.use_cache = True

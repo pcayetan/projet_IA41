@@ -34,12 +34,12 @@ def main_solver(nodes_to_visit, name_algorithm1 = "Dijkstra", name_algorithm2="C
 
     else:
         
-        solution_simplified_path = tsp_solver(graph, nodes_to_visit, ConnectedSimplifiedGraph, name_algorithm2)
+        solution_simplified_path = tsp_solver(nodes_to_visit, ConnectedSimplifiedGraph, name_algorithm2)
         path, time = get_path_time(nodes_to_visit, ConnectedSimplifiedGraph, solution_simplified_path)
         nodesgeocode = [nodesgeocode[nodes_to_visit.index(node)] for node in solution_simplified_path]
         return graph, path, time, nodesgeocode
 
-def tsp_solver(graph, nodes, dictionnary, algorithm_name="Christofides"):
+def tsp_solver(nodes, dictionnary, algorithm_name="Christofides"):
     """Solve the TSP problem with the algorithm chosen.
     :param graph: the graph of the network
     :param nodes: the list of nodes to visit
@@ -56,7 +56,7 @@ def tsp_solver(graph, nodes, dictionnary, algorithm_name="Christofides"):
     elif algorithm_name == "Christofides":
         simplified_solution_path = christofides.christofides(dictionnary)
     elif algorithm_name == "Pairwise exchange":
-        simplified_solution_path = pairwise_exchange.pairwise_exchange(graph, nodes, len(nodes))
+        simplified_solution_path = pairwise_exchange.pairwise_exchange(dictionnary, nodes, len(nodes))
     else:
         raise NameError("Unknown algorithm")
     end = timestamp.time()
