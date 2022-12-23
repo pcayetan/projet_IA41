@@ -3,7 +3,7 @@ import osmnx as ox
 from itertools import permutations, combinations
 from random import choice
 
-import dijkstra
+from algorithms import dijkstra
 
 
 def multiNodes_to_starGraph(graph: nx.MultiDiGraph, multi_nodes: list[nx.nodes], algo=dijkstra.dijkstra) -> nx.DiGraph:
@@ -137,12 +137,16 @@ def pairwise_exchange(graph, multinodes: list[nx.nodes], recursion) -> nx.graph:
     weight = star_graph.size(weight="weight")
     
     # add paths to ring graph
-    for edge in ring_graph.edges:
-        ring_graph[edge[0]][edge[1]]["path"] = star_graph[edge[0]][edge[1]]["path"]
-
-    full_path = reconstruct_full_path(ring_graph)
-    
-    return full_path
+    nodes = []
+    for start_node, end_node in ring_graph.edges:
+        if end_node in nodes:
+            continue
+        if not nodes:
+            nodes.append(start_node)
+        nodes.append(end_node)
+    nodes.append(nodes[0])  
+    print(nodes) 
+    return nodes
 
 
 if __name__=="__main__":

@@ -6,7 +6,7 @@ from threading import Thread
 
 #Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
 
-def construct_graph(graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony"):
+def construct_graph(graph, nodes, algorithm= "dijkstra"):
     """Construct a graph representation of the network of places to visited ready to be used by a TSP solver.
     The graph is represented as a dictionary of dictionaries. The keys are the nodes of the graph,
     and the values are dictionaries containing the time needed to travel between the node and its neighbors and 
@@ -20,15 +20,13 @@ def construct_graph(graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony
     dict: the graph representation
     """
     #Select the algorithm to use
-    if algorithm1 == "Dijkstra":
-        print("Dijkstra")
+    if algorithm == "Dijkstra":
         function = dijkstra.dijkstra
-    elif algorithm1 == "A*":
-        print("A*")
+    elif algorithm == "A*":
         function = astar.astar
     else:
         raise ValueError("Unknown algorithm")
-
+    print("Path finding algorithm: ", algorithm)
     #Create a graph with only the nodes to visit
     dic = {node: {} for node in nodes}   
     G = nx.Graph()
@@ -48,10 +46,7 @@ def construct_graph(graph, nodes, algorithm1= "dijkstra", algorithm2="ant_colony
         if(time != float("inf")):
             #Add the path to the graph
             dic[path[0]][path[-1]] = {"time": time, "path": path}
-            if(algorithm2 == "christofides"): #Check can be optimized
-                G.add_edge(path[0], path[-1], weight=time)
-    thread.join()
-    return dic, G
+    return dic
 
 class function_thread(Thread):
     def __init__(self, graph, start_node, end_node, algorithm):

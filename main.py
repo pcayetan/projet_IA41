@@ -1,17 +1,13 @@
-import sys
-import os
-import math
+import sys, os
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QSizePolicy
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 from folium import Marker, Icon
 from folium.features import DivIcon
-import matplotlib.pyplot as plt
 import osmnx as ox
 
-import graph_tools.TSP_solver as tsp_solver
-
+from graph_tools.TSP_solver import main_solver
 
 
 
@@ -22,8 +18,8 @@ class MainClass:
     
     def __init__(self):
         # Set configuration settings for osmnx
-        ox.settings.log_console = True
-        ox.settings.use_cache = True
+        ox.settings.log_console = False
+        ox.settings.use_cache = False
         # location where you want to find your route
         self.place = 'San Francisco, California, United States'
         # find shortest route based on the mode of travel
@@ -65,9 +61,7 @@ class Form(QWidget):
         dirname = os.path.dirname(__file__)
         filename = os.path.join(dirname, 'route.html')
         url = QUrl.fromLocalFile(filename)
-        print(os.path.exists(filename))
         self.preview.load(url)
-
         self.inputs = []
         # Add the widget to the list of inputs
         self.inputs.append(self.input1)     
@@ -133,7 +127,7 @@ class Form(QWidget):
 
         input_list = self.print_inputs()
         #Line used to debug quickly
-        # input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
+        # input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']        
         geocode_list = []
         for input in input_list:
             try:
@@ -147,7 +141,7 @@ class Form(QWidget):
         
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
-            graph, route, time, geocode_list = tsp_solver.tsp_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
+            graph, route, time, geocode_list = main_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
             print("The time to travel the route is: ", time, " seconds")
 
         except:
@@ -187,5 +181,6 @@ class Form(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     form = Form()
+    form.handleButtonClick()
     form.show()
     sys.exit(app.exec_())
