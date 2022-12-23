@@ -19,11 +19,11 @@ def get_communes_in_departement(nom_departement, range="\w"):
     # input: bounds of the area in which the coordinates are generated
     # input: number of generated coordinates
     # output: array of nb_coordinates coordinates inside a rectangle bounded by the input 
-def coordinates_array_generator(north,south,east,west, nb_coordinates):
+def coordinates_array_generator(maxlat,minlat,maxlon,minlon, nb_coordinates):
     coordinates_array = [
         [
-            random.uniform(south, north),
-            random.uniform(east, west) 
+            random.uniform(minlat, maxlat),
+            random.uniform(maxlon, minlon) 
         ] for _ in range(nb_coordinates)
     ]
     return np.array(coordinates_array)
@@ -45,9 +45,15 @@ def string_to_coordinates(string):
 #   output: a graph in which all of the coordinates fit
 #   the graph construction fails, returns -1
 def graph_from_coordinates_array(coordinates_array, simplify=True, network_type='drive'):
-    north, west = np.max(coordinates_array, axis=0) 
-    south, east = np.min(coordinates_array, axis=0)
-    graph  = ox.graph_from_bbox(north,south,east,west, simplify=simplify, network_type=network_type, truncate_by_edge=True)
+    maxlat, minlon = np.max(coordinates_array, axis=0) 
+    minlat, maxlon = np.min(coordinates_array, axis=0)
+    graph  = ox.graph_from_bbox(maxlat,minlat,maxlon,minlon, simplify=simplify, network_type=network_type, truncate_by_edge=True)
     graph = ox.add_edge_speeds(graph)
     graph = ox.add_edge_travel_times(graph)
-    return ox.utils_graph.get_largest_component(graph, strongly=True)
+    graph = ox.utils_graph.get_largest_component(graph, strongly=True)
+
+    nodes = []
+    for latitude, longitude in coordinates_array:
+        nodes.append(ox.nearest_nodes(graph, float(longitude), float(latitude)))
+
+    return nodes, graph

@@ -1,99 +1,72 @@
 from graph_tools import ConstructGraph, input_generator
-from algorithms import ant_colony, christofides, dijkstra
+from algorithms import ant_colony, christofides, pairwise_exchange
 import osmnx as ox
 import time as timestamp
-def tsp_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides"):
-    """Construct a graph with only the nodes latitude and longitude to visit with the algorithm1 and solve the TSP problem with the algorithm2
+import networkx as nx
 
-    Args:
-        places: A list of duos of latitude and longitude of the nodes to visit: (latitude, longitude)
-        algorithm1: The algorithm to use to construct the new graph
-        algorithm2: The algorithm to use to solve the TSP problem
+def main_solver(nodesgeocode, algorithm1 = "Dijkstra", algorithm2="Christofides"):
 
-    Returns:
-        The path to visit the nodes in the order given by the algorithm2
-    """
-    if(algorithm2=="Christofides"):
-        algorithm2 = "christofides"
-    elif(algorithm2=="Ant Algorithm"):
-        algorithm2 = "ant_colony"
-    else:
-        raise ValueError("Unknown 2nd algorithm")
-
-    graph = input_generator.graph_from_coordinates_array(nodesgeocode)
-    nodes = []
-
-    minlat = min([float(latitude) for latitude, _ in nodesgeocode])
-    maxlat = max([float(latitude) for latitude, _ in nodesgeocode])
-    minlon = min([float(longitude) for _, longitude in nodesgeocode])
-    maxlon = max([float(longitude) for _, longitude in nodesgeocode])
-
-    print(minlat, maxlat, minlon, maxlon)
-
-    #Padding to get a bigger area
-    padding = 0.05 * (maxlat - minlat)
-    minlat -= padding
-    maxlat += padding
-    padding = 0.05 * (maxlon - minlon)
-    minlon -= padding
-    maxlon += padding
-
-    #if the area is to linear, add padding to the other axis. This is to avoid the problem of the graph being a line
-    if maxlat - minlat < 0.5 * (maxlon - minlon):
-        padding = 0.5 * (maxlon - minlon) - (maxlat - minlat)
-        minlat -= padding / 2
-        maxlat += padding / 2
-    elif maxlon - minlon < 0.5 * (maxlat - minlat):
-        padding = 0.5 * (maxlat - minlat) - (maxlon - minlon)
-        minlon -= padding / 2
-        maxlon += padding / 2
-
-    
-    print(minlat, maxlat, minlon, maxlon)
-
-    #Download the graph of the area
-    graph = ox.graph_from_bbox(maxlat, minlat, maxlon, minlon, network_type='drive')
-
-    #add travel times to nodes
-    graph = ox.add_edge_speeds(graph)
-    graph = ox.add_edge_travel_times(graph)
-
-    #Mesure the time to run the first algorithm
+    #Create the graph to run the algorithm on
     start = timestamp.time()
-    #Find the nodes corresponding to the places
-    for latitude, longitude in nodesgeocode:
-        nodes.append(ox.nearest_nodes(graph, float(longitude), float(latitude)))
+    nodes, graph = input_generator.graph_from_coordinates_array(nodesgeocode)
     end = timestamp.time()
-    print("Time to create the graph with the 1st algorithm: ", end - start)
+    print("Time to create the graph: ", end - start)
     
     #Mesure the time to run the first algorithm
     start = timestamp.time()
     #Create a graph with only the nodes to visit with the algorithm1
-    print(algorithm2)
-    dictionnary, simplified_graph = ConstructGraph.construct_graph(graph, nodes, algorithm1, algorithm2)
+    dictionnary = ConstructGraph.construct_graph(graph, nodes, algorithm1)
     end = timestamp.time()
     print("Time to simplify the graph: ", end - start)
 
-    #Mesure the time to run the second algorithm
-    start = timestamp.time()
-    #If there is only two nodes, return the path between them
     if len(nodesgeocode) == 2:
-        path = simplified_graph[nodes[0]][nodes[1]]["path"]
-        return graph, path, simplified_graph[nodes[0]][nodes[1]]["time"], nodesgeocode
+        path, time = single_path_solver(nodes, dictionnary)
+        return graph, path, time, [nodesgeocode[0],nodesgeocode[1]]
+    else:
+        simplified_path = tsp_solver(graph, nodes, dictionnary, algorithm2)
+        path, time = get_path_time(nodes, dictionnary, simplified_path)
+        nodesgeocode = [nodesgeocode[nodes.index(node)] for node in simplified_path]
+        return graph, path, time, nodesgeocode
 
-    #Mesure the time to run the second algorithm
-    start = timestamp.time()
-    #Solve the TSP problem with the algorithm2
-    colony = ant_colony.ant_colony(simplified_graph, nodes[0],n_ants=25)
+
+def single_path_solver(nodes, dictionnary):
+    path = dictionnary[nodes[0]][nodes[1]]["path"]
+    time = dictionnary[nodes[0]][nodes[1]]["time"]
+    return path, time
     
+
+def tsp_solver(graph, nodes, dictionnary, algorithm_name="Christofides"):
+    algorithm = choose_algorithm(algorithm_name)
+    #Solve the TSP problem with the algorithm2
+    start = timestamp.time()
+    if(algorithm == "ant_colony"):        
+        colony = ant_colony.ant_colony(dictionnary, nodes[0],n_ants=25)
+        simplified_path, time = colony.run()
+    elif algorithm == "christofides":
+        simplified_path = christofides.christofides(dictionnary)
+    if algorithm == "pairwise_exchange":
+        simplified_path = pairwise_exchange.pairwise_exchange(graph, nodes, len(nodes))
+    end = timestamp.time()
+    print("Time to solve the TSP problem: ", end - start)
+    return simplified_path
+
+def choose_algorithm(algorithm):
+    algorithm_dictionary = {
+        "Pairwise exchange": "pairwise_exchange",
+        "Christofides": "christofides",
+        "Ant Algorithm": "ant_colony"
+    }
+    function = algorithm_dictionary.get(algorithm)
+    if function is None:
+        raise NameError("Unknown algorithm")
+    print("TSP algorithm:", algorithm)
+    return function
+
+def get_path_time(nodes, dictionnary, simplified_path):
     #Recreate path
+    time = 0
     path = [nodes[0]]
     for i in range(len(simplified_path)-1):
         path += dictionnary[simplified_path[i]][simplified_path[i+1]]["path"][1:]
-    #sort the geocode in the same order as the path
-    nodesgeocode = [nodesgeocode[nodes.index(node)] for node in simplified_path]
-    end = timestamp.time()
-    print("Time to solve the TSP problem: ", end - start)
-
-    #return the solution
-    return graph, path, time, nodesgeocode
+        time +=  dictionnary[simplified_path[i]][simplified_path[i+1]]["time"]
+    return path, time

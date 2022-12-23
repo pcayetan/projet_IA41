@@ -1,5 +1,4 @@
-import sys
-import os
+import sys, os
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QSizePolicy
 from PyQt5.QtWebEngineWidgets import QWebEngineView
@@ -32,6 +31,7 @@ class Form(QWidget):
         self.algorithmComboBox2 = QComboBox()
         self.algorithmComboBox2.addItem("Ant Algorithm")
         self.algorithmComboBox2.addItem("Christofides")
+        self.algorithmComboBox2.addItem("Pairwise exchange")
 
         # Create the button and connect it to the handleButtonClick() method
         self.button = QPushButton("Submit")
@@ -42,9 +42,7 @@ class Form(QWidget):
         dirname = os.path.dirname(__file__)
         filename = os.path.join(dirname, 'route.html')
         url = QUrl.fromLocalFile(filename)
-        print(os.path.exists(filename))
         self.preview.load(url)
-
         self.inputs = []
         # Add the widget to the list of inputs
         self.inputs.append(self.input1)     
@@ -111,7 +109,11 @@ class Form(QWidget):
 
         input_list = self.print_inputs()
         #Line used to debug quickly
+<<<<<<< HEAD
         input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']
+=======
+        # input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']        
+>>>>>>> 76346b1192bcc71e66a48332e0782da4f391537e
         geocode_list = []
         for input in input_list:
             try:
@@ -125,7 +127,7 @@ class Form(QWidget):
         
         # Call the construct_graph method, passing the start and end locations as arguments
         try:
-            graph, route, time, geocode_list = tsp_solver.tsp_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
+            graph, route, time, geocode_list = main_solver(geocode_list, algorithm1=self.algorithmComboBox1.currentText(), algorithm2=self.algorithmComboBox2.currentText())
             print("The time to travel the route is: ", time, " seconds")
 
         except:
@@ -165,5 +167,6 @@ class Form(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     form = Form()
+    form.handleButtonClick()
     form.show()
     sys.exit(app.exec_())

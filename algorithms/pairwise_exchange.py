@@ -3,7 +3,7 @@ import osmnx as ox
 from itertools import permutations, combinations
 from random import choice
 
-import dijkstra
+from algorithms import dijkstra
 
 
 def multiNodes_to_starGraph(graph: nx.MultiDiGraph, multi_nodes: list[nx.nodes], algo=dijkstra.dijkstra) -> nx.DiGraph:
@@ -118,16 +118,52 @@ def exchange_nodes(star_graph: nx.DiGraph, ring_graph: nx.DiGraph, recursion: in
         return new_ring_graph
     
     return ring_graph
+
+
+def reconstruct_full_path(ring_graph: nx.DiGraph):
+    path_graph = nx.DiGraph()
+    # print(ring_graph.edges.data())
+    for start, end, path in ring_graph.edges.data("path"):
+        nx.add_path(path_graph, [start, *path, end])
+    return path_graph
+    
     
 
 def pairwise_exchange(graph, multinodes: list[nx.nodes], recursion) -> nx.graph:
     star_graph = multiNodes_to_starGraph(graph, multinodes)
     ring_graph = starGraph_to_ringGraph(star_graph)
     
-    star_graph = exchange_nodes(star_graph, ring_graph, recursion)
+    ring_graph = exchange_nodes(star_graph, ring_graph, recursion)
+    weight = star_graph.size(weight="weight")
     
     # add paths to ring graph
-    for edge in ring_graph.edges:
-        ring_graph[edge[0]][edge[1]]["path"] = star_graph.get_edge_data(*edge, "path")
-    
-    return star_graph
+    nodes = []
+    for start_node, end_node in ring_graph.edges:
+        if end_node in nodes:
+            continue
+        if not nodes:
+            nodes.append(start_node)
+        nodes.append(end_node)
+    nodes.append(nodes[0])  
+    print(nodes) 
+    return nodes
+
+
+if __name__=="__main__":
+    distance = 11656.196759887971
+    midpoint = (47.63491834896677, 6.830560597944681)
+
+    # locations = ['UTBM', 'lion de belfort, belfort', 'Av. Jean Jaurès, belfort, France']
+    # coord = [(47.58821915, 6.865861151133005), (47.63665715, 6.86457499503841), (47.6565055, 6.8458507)]
+    node_list = [401460669, 321842925, 340177948, 346135377]
+
+
+    graph = ox.graph_from_point(midpoint, dist=distance/2, network_type='drive', simplify=False)
+
+    # node_list = [ox.nearest_nodes(graph, *geocode[::-1]) for geocode in geocode_list]
+    # node_list = [321842925, 340177948, 1625586214]
+
+    full_path: nx.DiGraph = pairwise_exchange(graph, node_list, 4)
+
+    print(full_path.number_of_nodes())
+    print(full_path.number_of_edges())
