@@ -131,7 +131,7 @@ def ring_graph_to_multinodes(ring_graph: nx.DiGraph, start_node):
     
     
 
-def pairwise_exchange(dictionnary, multinodes: list[nx.nodes], recursion) -> nx.graph:
+def pairwise_exchange(dictionnary, multinodes: list[nx.nodes], recursion):
     star_graph = nx.DiGraph(dictionnary)
     ring_graph = starGraph_to_ringGraph(star_graph)
     
