@@ -134,7 +134,7 @@ class ant_colony:
                 The heuristic of the node"""
             return 1 / self.graph[self.current][node]["time"]
         
-    def __init__(self, graph, start_node, alpha=0.5, beta=2, rho=0.5, n_ants=10, n_iterations=100, first_pass=True, heuristic=None):
+    def __init__(self, graph, start_node, alpha=0.5, beta=2, rho=0.5, n_ants=10, omega=100, first_pass=True, heuristic=None):
         """Create an ant_colony object
         
         Args:
@@ -144,7 +144,7 @@ class ant_colony:
             beta: The beta parameter of the algorithm, usually bigger than 1
             rho: The rho parameter of the algorithm, usually between 0 and 1
             n_ants: The number of ants
-            n_iterations: The number of iterations
+            omega: The omega parameter of the algorithm, stop the algorithm if the best ant has not improved for omega iterations
             first_pass: If True, the ants will visit all the nodes randomly on the first pass
             heuristic: The heuristic function to use"""
 
@@ -160,7 +160,7 @@ class ant_colony:
             raise ValueError("rho must be between 0 and 1")
         self.rho = rho
         self.n_ants = n_ants
-        self.n_iterations = n_iterations
+        self.omega = omega
         self.first_pass = first_pass
         self.heuristic = heuristic
 
@@ -173,14 +173,23 @@ class ant_colony:
         best_ant.path = []
         best_ant.distance = float("inf")
         #Run the iterations
-        for i in range(self.n_iterations):
+        no_improvement = 0
+        iteration = 0
+        while no_improvement < self.omega:
             self._iteration()
-            if self.first_pass:
-                best_ant = self.ants[0]
+            iteration += 1
+            old_best_ant_distance = best_ant.distance
             for ant in self.ants:
                 if ant.distance < best_ant.distance:
                     best_ant = ant
+            
+            #If the best ant has not improved, increment no_improvement
+            if old_best_ant_distance == best_ant.distance:
+                no_improvement += 1
+            else:
+                no_improvement = 0
         
+        print("Number of iterations: " + str(iteration))
         #Find the best ant
 
         return best_ant.path

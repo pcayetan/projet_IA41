@@ -51,7 +51,7 @@ def tsp_solver(nodes, dictionnary, algorithm_name="Christofides"):
     #Solve the TSP problem with the algorithm2
     start = timestamp.time()
     if(algorithm_name == "Ant Algorithm"):        
-        colony = ant_colony.ant_colony(dictionnary, nodes[0],n_ants=25)
+        colony = ant_colony.ant_colony(dictionnary, nodes[0],n_ants=25, omega=75, rho=0.1, beta=3)
         simplified_solution_path = colony.run()
     elif algorithm_name == "Christofides":
         simplified_solution_path = christofides.christofides(dictionnary)
