@@ -19,34 +19,39 @@ def astar(Graph, source, target):
     distance : dictionary
          Dictionary of shortest weighted paths keyed by target.
     """
+
+    
+    def heuristic(u, v):
+        # Get the latitude and longitude coordinates of the nodes
+        lat1 = Graph.nodes[u]["y"]
+        lon1 = Graph.nodes[u]["x"]
+        lat2 = Graph.nodes[v]["y"]
+        lon2 = Graph.nodes[v]["x"]
+        
+        # Convert the coordinates to radians
+        lat1 = lat1 * math.pi / 180
+        lon1 = lon1 * math.pi / 180
+        lat2 = lat2 * math.pi / 180
+        lon2 = lon2 * math.pi / 180
+        
+        # Calculate the great circle distance between the two points
+        a = math.sin((lat2-lat1)/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin((lon2-lon1)/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        d = 6371000 * c 
+        d = d / 1000 #Convert to kilometers
+        d = d / 30 #Convert to minutes
+        
+        return d
     
     if source == target:
         return (0, [source])
-        
-    def heuristic(u, v):
-            # Get the latitude and longitude coordinates of the nodes
-            lat1 = Graph.nodes[u]["y"]
-            lon1 = Graph.nodes[u]["x"]
-            lat2 = Graph.nodes[v]["y"]
-            lon2 = Graph.nodes[v]["x"]
-            
-            # Convert the coordinates to radians
-            lat1 = lat1 * math.pi / 180
-            lon1 = lon1 * math.pi / 180
-            lat2 = lat2 * math.pi / 180
-            lon2 = lon2 * math.pi / 180
-            
-            # Calculate the great circle distance between the two points
-            a = math.sin((lat2-lat1)/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin((lon2-lon1)/2)**2
-            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-            d = 6371000 * c 
-            d = d / 1000 #Convert to kilometers
-            d = d / 30 #Convert to minutes
-            
-            return d
 
     push = heappush
     pop = heappop
+
+    #Create an heuristic target variable to let it switch between the source and the target
+    heuristic_target = [target, source]
+
 
     neighbor_list=[Graph._succ,Graph._pred]
 
@@ -89,15 +94,17 @@ def astar(Graph, source, target):
                 #If the neighbor has not been visited, add it to the heap
                 if neighbor not in seen[direction]:
                     seen[direction][neighbor] = weight
-                    push(to_explore[direction], (weight + heuristic(neighbor, target), weight, neighbor))
+                    push(to_explore[direction], (weight + heuristic(neighbor, heuristic_target[direction]), weight, neighbor))
                     path[direction][neighbor] = path[direction][v] + [neighbor]
                 #If the neighbor has been visited, but the new path is shorter, update the heap
                 elif weight < seen[direction][neighbor]:
                     seen[direction][neighbor] = weight
-                    push(to_explore[direction],  (weight + heuristic(neighbor, target), weight, neighbor))
+                    push(to_explore[direction],  (weight + heuristic(neighbor, heuristic_target[direction]), weight, neighbor))
                     path[direction][neighbor] = path[direction][v] + [neighbor]
             
     return (float('inf'), [])
+
+
     
 
 def travel_time_route(u, v, graph):
@@ -112,4 +119,5 @@ def weight_node(u, v, data, graph, direction):
     else:
         weight += travel_time_route(v, u, graph)
     return weight
+
 

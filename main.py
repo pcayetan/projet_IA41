@@ -102,7 +102,7 @@ class Form(QWidget):
 
         input_list = self.get_inputs()
         #Line used to debug quickly
-        input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']        
+        #input_list = ['Belfort, France', 'Botans, France', 'andelnans, France', 'Danjoutin, France', 'Sevenans, France','Bourgogne-Franche-Comté, Perouse','Moval, France','Urcerey, France','Essert, France, Territoire de Belfort', 'Bavilliers','Cravanche','Vezelois','Meroux','Dorans','Bessoncourt','Denney','Valdoie']        
         
         ox.settings.log_console = True
         ox.settings.use_cache = True
@@ -113,7 +113,7 @@ class Form(QWidget):
             print("The time to travel the route is: ", time, " seconds")
 
         except ValueError as err:
-            #print an msgbox if the route is not possible
+            #print an msgbox if there is a problem with the input
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Critical)
             msg.setText(err.args[0])
@@ -123,7 +123,7 @@ class Form(QWidget):
             return
 
         except ConnectionError:
-            #print an msgbox if the route is not possible
+            #print an msgbox if there is a problem with the connection
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Critical)
             msg.setText("Connection error, please try again")
