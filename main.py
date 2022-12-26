@@ -21,7 +21,7 @@ class Form(QWidget):
     def preload(self):
         start_time = time.time()
 
-        ox.settings.log_console = True
+        ox.settings.log_console = False
         ox.settings.use_cache = True
 
         # Make an HTTP request to the httpbin.org website
