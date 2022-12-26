@@ -142,7 +142,7 @@ class Form(QWidget):
                 # If the time_label widget does not exist, create a new QLabel widget to display the time
                 self.time_label = QLabel()
                 self.time_label.setText(time_string)  # Set the text of the time_label to the time string
-                self.playout.addWidget(self.time_label)
+                self.playout.addWidget(self.time_label, 0, Qt.AlignRight)  # Add the time_label to the layout
 
         except ValueError as err:
             #print an msgbox if there is a problem with the input
