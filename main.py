@@ -58,8 +58,10 @@ class Form(QWidget):
 
         # Create the layout and add the widgets to it
         self.playout = QVBoxLayout()
-        self.playout.addWidget(self.input1)
-        self.playout.addWidget(self.input2)
+        self.playout2 = QVBoxLayout()
+        self.playout.addLayout(self.playout2)  # Add self.playout2 to the main layout
+        self.playout2.addWidget(self.input1)
+        self.playout2.addWidget(self.input2)
         self.playout.addWidget(self.button1)
         self.playout.addWidget(self.algorithmComboBox1)
         self.playout.addWidget(self.algorithmComboBox2)
@@ -78,7 +80,7 @@ class Form(QWidget):
         self.inputs.append(self.input)
 
         # Add the widget to the layout
-        self.playout.addWidget(self.input)
+        self.playout2.addWidget(self.input)
 
     def get_inputs(self):
         # Create an empty list to store the text entered in the inputs
