@@ -1,8 +1,8 @@
 import sys, os
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QSizePolicy
-from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import *
+from PyQt5.QtWebEngineWidgets import *
+from PyQt5.QtCore import *
 from folium import Marker, Icon
 from folium.features import DivIcon
 import osmnx as ox
@@ -17,6 +17,17 @@ class Form(QWidget):
     def initUI(self):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setWindowTitle("Map Viewer")
+        # Create a URL pointing to the CSS file
+        css_url = QUrl.fromLocalFile("style.css")
+        # Create a QFile object to read the CSS file
+        css_file = QFile(css_url.toLocalFile())
+        # Open the file
+        css_file.open(QFile.ReadOnly | QFile.Text)
+        # Read the file
+        css = QTextStream(css_file).readAll()
+        # Close the file
+        css_file.close()        # Set the stylesheet for the form
+        self.setStyleSheet(css)
         # Create the input fields
         self.input1 = QLineEdit()
         self.input1.setPlaceholderText("Start location")
@@ -113,6 +124,25 @@ class Form(QWidget):
         try:
             graph, route, time, geocode_list = tsp_solver.main_solver(input_list, name_algorithm1=self.algorithmComboBox1.currentText(), name_algorithm2=self.algorithmComboBox2.currentText())
             print("The time to travel the route is: ", time, " seconds")
+            # Create a QLabel widget to display the time
+            hours, seconds = divmod(time, 3600)  # divide time by 3600 to get the number of hours
+            minutes, seconds = divmod(seconds, 60)  # divide the remainder by 60 to get the number of minutes
+
+            # Convert the hours, minutes, and seconds to strings and add leading zeros if necessary
+            hours_string = str(int(hours)).zfill(2)
+            minutes_string = str(int(minutes)).zfill(2)
+            seconds_string = str(int(seconds)).zfill(2)
+            # Create a string in the format "hours:minutes:seconds"
+            time_string = f"{hours_string}:{minutes_string}:{seconds_string} to drive"
+            # Check if the time_label widget already exists
+            if hasattr(self, 'time_label'):
+                # If the time_label widget already exists, set the text of the widget to the updated time
+                self.time_label.setText(time_string)
+            else:
+                # If the time_label widget does not exist, create a new QLabel widget to display the time
+                self.time_label = QLabel()
+                self.time_label.setText(time_string)  # Set the text of the time_label to the time string
+                self.playout.addWidget(self.time_label)
 
         except ValueError as err:
             #print an msgbox if there is a problem with the input
