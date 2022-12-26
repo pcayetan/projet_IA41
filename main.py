@@ -47,8 +47,6 @@ class Form(QWidget):
         G = ox.add_edge_travel_times(G)
         end_time = time.time()
 
-        fig = ox.plot_graph(G, node_size=0.5, show=False)
-
         # Use folium to plot the map
         m = folium.Map(location=[latitude, longitude], zoom_start=15)
 
