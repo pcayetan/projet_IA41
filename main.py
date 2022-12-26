@@ -3,16 +3,62 @@ import sys, os
 from PyQt5.QtWidgets import *
 from PyQt5.QtWebEngineWidgets import *
 from PyQt5.QtCore import *
-from folium import Marker, Icon
+import folium
 from folium.features import DivIcon
 import osmnx as ox
+import geoip2.database
+import requests
+import time
 
 import graph_tools.TSP_solver as tsp_solver
 
 class Form(QWidget):
     def __init__(self):
         super().__init__()
+        self.preload()
         self.initUI()
+
+    def preload(self):
+        start_time = time.time()
+
+        ox.settings.log_console = True
+        ox.settings.use_cache = True
+
+        # Make an HTTP request to the httpbin.org website
+        response = requests.get('http://httpbin.org/ip')
+
+        # Get the user's IP address from the response
+        user_ip = response.json()['origin']
+
+        # Open the GeoIP2 database file
+        reader = geoip2.database.Reader('testtools/dataset/GeoLite2-City.mmdb')
+
+        # Look up the user's IP address
+        response = reader.city(user_ip)
+
+        # Get the user's latitude and longitude coordinates
+        latitude = response.location.latitude
+        longitude = response.location.longitude
+
+        # Use OSMnx to get the nearest network to the user's location
+        G = ox.graph_from_point((latitude, longitude), dist=1000, network_type='drive')
+        G = ox.add_edge_speeds(G)
+        # calculate travel time (seconds) for all edges
+        G = ox.add_edge_travel_times(G)
+        end_time = time.time()
+
+        fig = ox.plot_graph(G, node_size=0.5, show=False)
+
+        # Use folium to plot the map
+        m = folium.Map(location=[latitude, longitude], zoom_start=15)
+
+        # Add the map to the web page
+        m.save('route.html')
+
+        # Calculate the elapsed time
+        elapsed_time = end_time - start_time
+        # Print the elapsed time
+        print(f'Elapsed time: {elapsed_time:.2f} seconds')
     
     def initUI(self):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -79,6 +125,7 @@ class Form(QWidget):
         self.playout.addWidget(self.button)
         self.playout.addWidget(self.preview)
         self.setLayout(self.playout)
+        
         
     def add_input(self):
         # Create a new QLineEdit widget
