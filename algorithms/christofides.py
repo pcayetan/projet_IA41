@@ -1,9 +1,10 @@
 from heapq import heappop, heappush
-from networkx import MultiGraph, Graph, max_weight_matching
+from networkx import Graph, max_weight_matching
 from itertools import count
 from copy import deepcopy
-
+from collections import deque
     
+
 def christofides(dictionary, weight="time"):
     """Compute an approximation of the shortest path between all the nodes of the dictionary
     Uses Christofides Algorithm to solve the traveling's salesman problem (TSP).
@@ -16,25 +17,38 @@ def christofides(dictionary, weight="time"):
     Returns:
     an approximation of the shortest path between the dictionary's nodes
     """
-    D = deepcopy(dictionary)
-    for start_node in D:
-        for end_node in D[start_node]:
+    non_oriented_graph = oriented_to_non_oriented_graph(dictionary=dictionary, weight="time")
+    tree = prim_dictionnary(dict=non_oriented_graph, weight="time")
+    odd_graph = get_odd_graph(dictionary, tree)
+    min_weight_matchings = dic_min_weight_matching(odd_graph)
+    eulerian_graph = create_eulerian_graph(tree, min_weight_matchings)
+    eulerian_path = hierholzer_eulerian_circuit(eulerian_graph)
+    hamiltonian_path = shortcutting(eulerian_path)
+    new_path = reorder(hamiltonian_path, list(dictionary.keys())[0])
+    return new_path
+
+
+def oriented_to_non_oriented_graph(dictionary, weight="time"):
+    """Compute the non oriented version of the dictionary, cleans the dictionary
+
+    Parameters:
+    --------------
+    dictionary: oriented graph like [start_node][end_node][weight] = weight
+    """
+    dictionary_copy = deepcopy(dictionary)
+    new_dictionary = {node: {} for node in dictionary_copy.keys()}
+    for start_node in dictionary_copy:
+        for end_node in dictionary_copy[start_node]:
             if start_node == end_node:
                 continue
-            D[start_node][end_node].pop("path")
-    G = Graph(D)
-    tree = minimum_spanning_tree(G, weight=weight)
-    L = G.copy()
-    L.remove_nodes_from([end_node for end_node, degree in tree.degree if not (degree % 2)])
-    graph = MultiGraph()
-    graph.add_edges_from(tree.edges)
-    edges = min_weight_matching(L, weight=weight)
-    graph.add_edges_from(edges)
-    path = shortcutting(eulerian_circuit(graph))
-    return path
+            w = (dictionary_copy[start_node][end_node][weight] + dictionary_copy[start_node][end_node][weight]) / 2
+            new_dictionary[start_node][end_node] = {weight : w}
+            new_dictionary[end_node][start_node] = {weight : w}
+            del dictionary_copy[end_node][start_node]
+    return new_dictionary
 
 
-def prim_graph(G, weight="time"):
+def prim_dictionnary(dict, weight="time"):
     """Compute a the edges of a minimim spanning tree (mst) for a graph
     Uses Prim's algorithm
 
@@ -48,70 +62,131 @@ def prim_graph(G, weight="time"):
     """
     push = heappush
     pop = heappop
-    nodes = set(G)
-    c = count()
+    nodes = set(dict)
+    tree = {node : {} for node in nodes}
     while nodes:
-        u = nodes.pop()
-        frontier = []
+        u = nodes.pop() #arbitrary node
+        heap = []   
         visited = {u}
-        
-        for v, d in G.adj[u].items():
+        for v, d in dict[u].items():
             wt = d.get(weight, 1)
-            push(frontier, (wt, next(c), u, v, d))
-        while nodes and frontier:
-            W, _, u, v, d = pop(frontier)
+            push(heap, (wt, u, v, d))
+        while nodes and heap:
+            _, u, v, d = pop(heap)
             if v in visited or v not in nodes:
                 continue
-            yield u, v, d
-            # update frontier
+            tree[u][v] = d
+            tree[v][u] = d
             visited.add(v)
             nodes.discard(v)
-            for w, d2 in G.adj[v].items():
+            for w, d2 in dict[v].items():
                 if w in visited:
                     continue
                 new_weight = d2.get(weight, 1)
-                push(frontier, (new_weight, next(c), v, w, d2))
+                push(heap, (new_weight, v, w, d2))
+    return tree
 
-    
-def minimum_spanning_tree(G, weight="time"):
-    """Compute a the edges of a minimim spanning tree (mst) for a graph
-    Compute the minimum spanning tree for a graph using Prim's algorithm
-    
-    Parameters:
+
+def get_odd_graph(dictionary, tree):
+    """Get the vertices with odd degree of the tree from the main graph to get a new graph
+     Parameters:
     ---------------
-        G: nx.Graph 
+        dictionary: graph under dictionary form
+        tree: minimum spanning tree
+    
+    Returns:
+        I: dictionary containing the vertices of odd degree
+    """
+    I = deepcopy(dictionary)
+    for node in tree:
+        if not (len(tree[node]) % 2):
+            for second_node in I[node]:
+                I[second_node].pop(node)
+            I.pop(node)
+    return I
+
+
+def dic_min_weight_matching(dictionary, weight="time"):
+    """Calculate a minimum weight matching from a graph
+
+     Parameters:
+    ---------------
+        dictionary: graph under dictionary form
         weight: weight used in the graph
     
     Returns:
-        T_graph: nx.Graph containing the minimum spanning tree of G
-    """
-    edges_mst_prim_graph = prim_graph(G, weight=weight)
-    T_graph = Graph()  # Same graph class as Gs
-    T_graph.add_nodes_from(G.nodes.items())
-    T_graph.add_edges_from(edges_mst_prim_graph)
-    return T_graph
-
+        edges: dictionary containing the matchings
     
-def min_weight_matching(G, weight="time"):
-    """Compute a minimally weighted matching of G
-    Uses networkx's function max_weight_matching, 
-    only the inversion to get the min is done here.
+    """
+    max_weight = 1 + max(dictionary[first_node][second_node][weight] for first_node in dictionary for second_node in dictionary[first_node])
+    new_dic = deepcopy(dictionary)
+    for first_node in dictionary:
+        for second_node in dictionary[first_node]:
+            new_dic[first_node][second_node][weight] = max_weight - dictionary[first_node][second_node][weight]
+            
+    InvG = Graph(new_dic)
+    edges = {}
+    matchings = max_weight_matching(InvG, maxcardinality=True, weight=weight)
+    for matching in matchings:
+        matching = list(matching)
+        u = matching[0]
+        v = matching[1]
+        for node in matching: 
+            edges[node] = {}
+        w = dictionary[u][v][weight]
+        edges[v][u] = {weight : w}
+        edges[u][v] = {weight : w}
+    return edges
+
+
+def create_eulerian_graph(tree, min_weight_matchings):
+    """ Adds the tree and minimum weight matchings results to get the eulerian graph
+
     Parameters:
     ---------------
-        G: nx.Graph 
-        weight: weight used in the graph
+        tree: minimum spanning tree
+        min_weight_matchings: dictionary containing the matchings
+
+    Returns:
+        graph: dictionary containing the eulerian graph
+    """
+    graph = deepcopy(tree)
+    for node, value in min_weight_matchings.items():
+        graph[node].update(value)
+    return graph
+
+
+def hierholzer_eulerian_circuit(eulerian_graph):
+    """Calculate an eulerian circuit in an eulerian graph
+    
+    Parameters:
+    ---------------
+        eulerian_graph: eulerian graph under dictionary form
     
     Returns:
-        A minimally weighted matching of G
+        path: list containing the circuit
     """
-    G_edges = G.edges(data=weight, default=1)
-    max_weight = 1 + max(w for _, _, w in G_edges)
-    InvG = Graph()
-    edges = ((u, v, max_weight - w) for u, v, w in G_edges)
-    InvG.add_weighted_edges_from(edges, weight=weight)
-    return max_weight_matching(InvG, maxcardinality=True, weight=weight)
-    
-    
+    dic = deepcopy(eulerian_graph)
+    first_vertex = list(dic.keys())[0]
+    vertex_stack = [first_vertex]
+    path = []
+    last_vertex = None
+    while vertex_stack:
+        current_vertex = vertex_stack[-1]
+        if dic[current_vertex]:
+            next_vertex, _ = list(dic[current_vertex].items())[0]
+            vertex_stack.append(next_vertex)
+            dic[current_vertex].pop(next_vertex)
+            dic[next_vertex].pop(current_vertex)
+        else:
+            if last_vertex is not None:
+                path.append(last_vertex)
+            last_vertex = current_vertex
+            vertex_stack.pop()
+    path.append(current_vertex)
+    return  path
+
+
 def shortcutting(path):
     """Removes the nodes through which the path comes through twice
     Parameters:
@@ -121,41 +196,25 @@ def shortcutting(path):
     Returns:
         nodes: list
     """
-    nodes = []
-    for start_node, end_node in path:
-        if end_node in nodes:
+    nodes = [path[0]]
+    for node in path:
+        if node in nodes:
             continue
-        if not nodes:
-            nodes.append(start_node)
-        nodes.append(end_node)
-    nodes.append(nodes[0])
+        nodes.append(node)
     return nodes
-    
-def eulerian_circuit(G):
-    """Create an eulerian circuit for graph G
-    ---------------
-        G: nx.Graph 
-    
-    Yield:
-        vertex of the eulerian circuit
-    """
-    G = G.copy()
-    source = next(iter(G))
-    degree = G.degree
-    edges = G.edges
-    vertex_stack = [source]
-    last_vertex = None
-    
-    while vertex_stack:
-        current_vertex = vertex_stack[-1]
-        if degree(current_vertex) == 0:
-            if last_vertex is not None:
-                yield (last_vertex, current_vertex)
-            last_vertex = current_vertex
-            vertex_stack.pop()
-        else:
-            triple = next(iter(edges(current_vertex, keys=True)))
-            _, next_vertex, next_key = triple
-            vertex_stack.append(next_vertex)
-            G.remove_edge(current_vertex, next_vertex, next_key)
 
+
+def reorder(list, first):
+    """Rotate the list until the parameters "first" is in first position, then appends it to the list
+    Parameters:
+    ---------------
+        list: list 
+        first: int
+    
+    Returns:
+        list: list
+    """
+    while(list[0] != first):
+        list.append(list.pop(0))
+    list.append(first)
+    return list
